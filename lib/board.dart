@@ -85,6 +85,33 @@ class Fig {
         color = Color.zeroColor;
   int toRune() => Piece.runeMap[type][color];
   String toString() => new String.fromCharCodes([$space, toRune()]);
+  static Fig sub(type, color, [PawnCenter pc = PawnCenter.didnt]) {
+    switch (type) {
+      case FigType.rook:
+        return new Rook(color);
+        break;
+      case FigType.knight:
+        return new Knight(color);
+        break;
+      case FigType.bishop:
+        return new Bishop(color);
+        break;
+      case FigType.queen:
+        return new Queen(color);
+        break;
+      case FigType.king:
+        return new King(color);
+        break;
+      case FigType.pawn:
+        return new Pawn(color, pc);
+        break;
+      case FigType.zeroFigType:
+        return new Fig.zero();
+        break;
+      default:
+        return new Fig.zero();
+    }
+  }
 }
 
 class Rook extends Fig {
@@ -139,6 +166,7 @@ class Board {
       6, (_) => new List<Square>.generate(24, (_) => new Square.zero()),
       growable: false);
   Board();
+  Board.fromB(this.b);
   void pFig(Pos pos, Fig fig) {
     b[pos.rank][pos.file] = new Square(fig);
   }
