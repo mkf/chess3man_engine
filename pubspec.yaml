@@ -6,3 +6,4 @@ authors:
 homepage: "http://github.com/ArchieT/chess3man_engine"
 dependencies:
   charcode: any
+  built_collection: ^1.0.4

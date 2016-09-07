@@ -1,6 +1,9 @@
 library chess3man.engine.board;
 
 import "package:charcode/charcode.dart";
+import "colors.dart";
+import "pos.dart";
+export "pos.dart";
 
 class FigType {
   final int index;
@@ -25,25 +28,6 @@ const List<FigType> firstRankNewGame = const <FigType>[
   FigType.knight,
   FigType.rook
 ];
-
-class Color {
-  final int index;
-  const Color(this.index);
-  static const zeroColor = const Color(0);
-  static const white = const Color(1);
-  static const gray = const Color(2);
-  static const black = const Color(3);
-  int toInt() => this.index;
-  Color next() => new Color(index % 3 + 1);
-  static const List<Color> colors = const <Color>[white, gray, black];
-  static const Map<Color, String> strings = const <Color, String>{
-    white: "White",
-    gray: "Gray",
-    black: "Black",
-    zeroColor: "ZeroColor"
-  };
-  String toString() => strings[this];
-}
 
 class PawnCenter {
   final bool pc;
@@ -154,19 +138,22 @@ class Square {
   String toString() => notEmpty ? fig.toString() : _emptyourstr;
 }
 
-class Pos {
-  final int rank;
-  final int file;
-  const Pos(this.rank, this.file);
-  String toString() => "[$rank,$file]";
-}
-
 class Board {
   List<List<Square>> b = new List<List<Square>>.generate(
       6, (_) => new List<Square>.generate(24, (_) => new Square.zero()),
       growable: false);
   Board();
   Board.fromB(this.b);
+  Board.newGame() {
+    for (final Color col in Color.colors) {
+      for (int i = 0; i < 8; i++) {
+        Pos ourz = new Pos.colorSegment(col, 0, i);
+        Pos ourf = new Pos.colorSegment(col, 1, i);
+        pFig(ourz, Fig.sub(firstRankNewGame[i], col));
+        pFig(ourf, new Pawn(col));
+      }
+    }
+  }
   void pFig(Pos pos, Fig fig) {
     b[pos.rank][pos.file] = new Square(fig);
   }
