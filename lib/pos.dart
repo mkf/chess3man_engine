@@ -2,6 +2,18 @@ library chess3man.engine.pos;
 
 import "colors.dart";
 
+class CanIDiagonal {
+  final bool short;
+  final bool long;
+  final bool positivesgn;
+  const CanIDiagonal(this.short, this.long, this.positivesgn);
+  const CanIDiagonal.no()
+      : this.short = false,
+        this.long = false,
+        this.positivesgn = null;
+  bool toBool() => short || long;
+}
+
 class Pos {
   final int rank;
   final int file;
@@ -18,9 +30,44 @@ class Pos {
       : new Pos(file == 23 ? rank + 1 : rank, file == 23 ? 0 : file + 1);
   bool sameRank(Pos ano) => rank == ano.rank;
   bool sameFile(Pos ano) => file == ano.file;
+  bool equal(Pos ano) => file == ano.file && rank == ano.rank;
   bool adjacentFile(Pos ano) => file + 12 % 24 == ano.file;
   bool sameOrAdjacentFile(Pos ano) => file % 12 == ano.file % 12;
-  //bool shortDiagonal(Pos ano) => (ano.rank-rank)%6==(ano.file-file)%12;
+  CanIDiagonal diagonal(Pos ano) {
+    if (this == ano) {
+      return new CanIDiagonal.no();
+    }
+    int shorttd = (ano.rank < rank ? rank - ano.rank : ano.rank - rank);
+    int longtd = ano.rank + rank;
+    bool short = false;
+    bool positivesgn;
+    if (ano.file == (file + shorttd) % 24) {
+      positivesgn = true;
+      short = true;
+    } else if (ano.file == (file - shorttd + 24) % 24) {
+      positivesgn = false;
+      short = true;
+    } else if (ano.file == (file + longtd) % 24) {
+      positivesgn = true;
+      short = false;
+    } else if (ano.file == (file - longtd + 24) % 24) {
+      positivesgn = false;
+      short = false;
+    } else {
+      return new CanIDiagonal.no();
+    }
+    return new CanIDiagonal(
+        short,
+        !short ||
+            (file + (positivesgn ? longtd : 24 - longtd) % 24 == ano.file),
+        positivesgn);
+  }
+
+  static int wrappedFileVector(int from, int to, [longnotshort = false]) {
+    int diff = to - from;
+    int sgn = diff < 0 ? -1 : 1;
+    return ((diff * sgn > 12) == longnotshort) ? diff : (diff - 24 * sgn);
+  }
 }
 
 class Vector {
