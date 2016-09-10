@@ -41,6 +41,15 @@ class Pos {
   FileVector fileVectorTo(Pos ano, {bool long: false}) => sameRank(ano)
       ? new FileVector(wrappedFileVector(file, ano.file, long))
       : null;
+  Iterable<AxisVector> axisVectorsTo(Pos ano) sync* {
+    RankVector rankVector = rankVectorTo(ano);
+    if (rankVector is RankVector) yield rankVector;
+    FileVector shortfileVector = fileVectorTo(ano);
+    if (shortfileVector is FileVector) yield shortfileVector;
+    FileVector longfileVector = fileVectorTo(ano, long: true);
+    if (longfileVector is FileVector) yield longfileVector;
+  }
+
   DiagonalVector shorterDiagonalVectorTo(Pos ano,
       {bool positivesgn: null, bool short: null, bool long: null}) {
     if (short != false && rank != ano.rank) {
@@ -110,6 +119,11 @@ class Pos {
       LongDiagonalVector longer = longerDiagonalVectorTo(ano, shorter);
       if (longer != null) yield longer;
     }
+  }
+
+  Iterable<ContinousVector> continousVectorsTo(Pos ano) sync* {
+    yield* this.axisVectorsTo(ano);
+    yield* this.diagonalVectorsTo(ano);
   }
 
   static int wrappedFileVector(int from, int to, [long = false]) {
