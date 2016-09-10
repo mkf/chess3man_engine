@@ -124,6 +124,7 @@ abstract class Vector {
   int get file;
   Pos addTo(Pos from);
   bool toBool() => ((rank is int) && (file is int)) && (rank != 0 || file != 0);
+  Iterable<Vector> units(int fromrank);
 }
 
 class ZeroVector implements Vector {
@@ -134,6 +135,31 @@ class ZeroVector implements Vector {
   bool toBool() => false;
   Pos addTo(Pos from) => from;
   const ZeroVector();
+  Iterable<Vector> units(_) sync* {}
+}
+
+class KnightVector implements Vector {
+  final bool inward;
+  final bool plusfile;
+  final bool centeronecloser;
+  const KnightVector(this.inward, this.plusfile, this.centeronecloser);
+  bool get morerank => centeronecloser == inward;
+  bool get morefile => !morerank;
+  int get rank => (inward ? 1 : -2) + (centeronecloser ? 1 : 0);
+  int get file => (morefile ? 2 : 1) * (plusfile ? 1 : -1);
+  Pos addTo(Pos from) => (inward &&
+          (centeronecloser && from.rank >= 4 || from.rank == 5))
+      ? (centeronecloser
+          ? new Pos(
+              (5 + 4) - from.rank, (from.rank + (plusfile ? 1 : -1) + 12) % 24)
+          : new Pos(5, (from.rank + (plusfile ? 2 : -2) + 12) % 24))
+      : null;
+
+  bool toBool() =>
+      inward != null && plusfile != null && centeronecloser != null;
+  Iterable<KnightVector> units(_) sync* {
+    yield this;
+  }
 }
 
 abstract class ContinousVector implements Vector {
@@ -260,8 +286,10 @@ class LongDiagonalVector extends DiagonalVector {
 class SolelyThruCenterDiagonalVector extends DiagonalVector {
   bool get inward => true;
   const SolelyThruCenterDiagonalVector(bool plusfile) : super.unit(plusfile);
-  List<SolelyThruCenterDiagonalVector> units(_) =>
-      <SolelyThruCenterDiagonalVector>[this];
+  Iterable<SolelyThruCenterDiagonalVector> units(_) sync* {
+    yield this;
+  }
+
   Pos addTo(Pos pos) => pos.rank == 5
       ? new Pos(5, (pos.file + (plusfile ? -10 : 10)) % 24)
       : null;
