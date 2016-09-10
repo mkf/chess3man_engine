@@ -7,10 +7,11 @@ class CanIDiagonal {
   final bool long;
   final bool positivesgn;
   const CanIDiagonal(this.short, this.long, this.positivesgn);
-  const CanIDiagonal.no()
+  const CanIDiagonal._no()
       : this.short = false,
         this.long = false,
         this.positivesgn = null;
+  static const CanIDiagonal no = const CanIDiagonal._no();
   bool toBool() => short || long;
 }
 
@@ -33,52 +34,235 @@ class Pos {
   bool equal(Pos ano) => file == ano.file && rank == ano.rank;
   bool adjacentFile(Pos ano) => file + 12 % 24 == ano.file;
   bool sameOrAdjacentFile(Pos ano) => file % 12 == ano.file % 12;
-  CanIDiagonal diagonal(Pos ano) {
+  RankVector rankVectorTo(Pos ano) => sameOrAdjacentFile(ano)
+      ? new RankVector(
+          sameFile(ano) ? ano.rank - rank : 5 - rank + 5 - ano.rank)
+      : null;
+  FileVector fileVectorTo(Pos ano, {bool long: false}) => sameRank(ano)
+      ? new FileVector(wrappedFileVector(file, ano.file, long))
+      : null;
+  DiagonalVector shorterDiagonalVectorTo(Pos ano,
+      {bool positivesgn: null, bool short: null, bool long: null}) {
+    if (short != false && rank != ano.rank) {
+      bool inward = ano.rank > rank;
+      int shorttd = (!inward ? rank - ano.rank : ano.rank - rank);
+      if ((positivesgn != false) && ano.file == (file + shorttd) % 24)
+        return new DirectDiagonalVector(shorttd, inward, true);
+      else if ((positivesgn != true) && ano.file == (file - shorttd) % 24)
+        return new DirectDiagonalVector(shorttd, inward, false);
+    } else if (long != false) {
+      int ranksum = ano.rank + rank;
+      if ((positivesgn != true) && ano.file == (file + ranksum) % 24)
+        return new LongDiagonalVector(ranksum, false);
+      else if ((positivesgn != false) && ano.file == (file - ranksum) % 24)
+        return new LongDiagonalVector(ranksum, true);
+    }
+    return null;
+  }
+
+  DiagonalVector longerDiagonalVectorTo(Pos ano, DiagonalVector shorter) {
+    if (shorter is DirectDiagonalVector) {
+      int ranksum = ano.rank + rank;
+      if (ano.file == (shorter.plusfile ? file - ranksum : file + ranksum) % 24)
+        return new LongDiagonalVector(ranksum, shorter.plusfile);
+    }
+    return null;
+  }
+
+  @deprecated
+  CanIDiagonal canIDiagonal(Pos ano) {
     if (this == ano) {
-      return new CanIDiagonal.no();
+      return CanIDiagonal.no;
     }
     int shorttd = (ano.rank < rank ? rank - ano.rank : ano.rank - rank);
     int longtd = ano.rank + rank;
-    bool short = false;
+    bool shortrnl;
     bool positivesgn;
     if (ano.file == (file + shorttd) % 24) {
       positivesgn = true;
-      short = true;
-    } else if (ano.file == (file - shorttd + 24) % 24) {
+      shortrnl = true;
+    } else if (ano.file == (file - shorttd) % 24) {
       positivesgn = false;
-      short = true;
+      shortrnl = true;
     } else if (ano.file == (file + longtd) % 24) {
       positivesgn = true;
-      short = false;
-    } else if (ano.file == (file - longtd + 24) % 24) {
+      shortrnl = false;
+    } else if (ano.file == (file - longtd) % 24) {
       positivesgn = false;
-      short = false;
+      shortrnl = false;
     } else {
-      return new CanIDiagonal.no();
+      return CanIDiagonal.no;
     }
     return new CanIDiagonal(
-        short,
-        !short ||
-            (file + (positivesgn ? longtd : 24 - longtd) % 24 == ano.file),
+        shortrnl,
+        !shortrnl || (file + (positivesgn ? longtd : -longtd) % 24 == ano.file),
         positivesgn);
   }
 
-  static int wrappedFileVector(int from, int to, [longnotshort = false]) {
+  Iterable<DiagonalVector> diagonalVectorsTo(Pos ano) sync* {
+    //  CanIDiagonal cid = canIDiagonal(ano);
+    //  if (cid.toBool()) {
+    //    if (cid.short) {
+    //      yield this.shorterDiagonalVectorTo(ano, positivesgn: cid.positivesgn);
+    DiagonalVector shorter = shorterDiagonalVectorTo(ano);
+    if (shorter != null) {
+      yield shorter;
+      LongDiagonalVector longer = longerDiagonalVectorTo(ano, shorter);
+      if (longer != null) yield longer;
+    }
+  }
+
+  static int wrappedFileVector(int from, int to, [long = false]) {
     int diff = to - from;
     int sgn = diff < 0 ? -1 : 1;
-    return ((diff * sgn > 12) == longnotshort) ? diff : (diff - 24 * sgn);
+    return ((diff * sgn > 12) == long) ? diff : (diff - 24 * sgn);
   }
 }
 
-class Vector {
-  final int rank;
-  final int file;
-  const Vector(this.rank, this.file);
-  static int wrappedFileVector(int from, int to, [longnotshort = false]) {
-    return (to - from) % 24;
+abstract class Vector {
+  int get rank;
+  int get file;
+  Pos addTo(Pos from);
+  bool toBool() => ((rank is int) && (file is int)) && (rank != 0 || file != 0);
+}
+
+class ZeroVector implements Vector {
+  int get rank => 0;
+  int get file => 0;
+  int get mrank => 0;
+  int get mfile => 0;
+  bool toBool() => false;
+  Pos addTo(Pos from) => from;
+  const ZeroVector();
+}
+
+abstract class ContinousVector implements Vector {
+  final int abs;
+  const ContinousVector(this.abs);
+  const ContinousVector.unit() : this.abs = 1;
+  @override
+  bool toBool() => (abs is int) && abs != 0;
+  Iterable<ContinousVector> units(int fromrank);
+}
+
+abstract class AxisVector extends ContinousVector {
+  final bool direc;
+  const AxisVector(int t, [bool direc = null])
+      : this.direc = (direc != null) ? !(t < 0) : direc,
+        super(((direc != null) ? (t < 0 ? -t : t) : t));
+  const AxisVector.unit(this.direc) : super.unit();
+  int get t => direc ? abs : -abs;
+}
+
+class FileVector extends AxisVector {
+  int get file => t;
+  int get rank => 0;
+  const FileVector(int file, [bool direc = null]) : super(file % 24, direc);
+  const FileVector.unit(bool direc) : super.unit(direc);
+  Iterable<FileVector> units(_) sync* {
+    for (int i = abs; i > 0; i--) {
+      yield new FileVector.unit(direc);
+    }
   }
 
-  Vector.fromPlaced(Pos from, Pos to, {longnotshort: false})
-      : this.rank = (to.rank - from.rank) % 6,
-        this.file = wrappedFileVector(from.file, to.file, longnotshort);
+  Pos addTo(Pos pos) => new Pos(pos.rank, (pos.file + this.file) % 24);
+}
+
+class RankVector extends AxisVector {
+  int get rank => t;
+  int get file => 0;
+  const RankVector(int rank, [bool direc = null]) : super(rank, direc);
+  const RankVector.unit(bool direc) : super.unit(direc);
+  bool thruCenter(int fromrank) => direc && fromrank + this.rank > 5;
+  Iterable<RankVector> units(_) sync* {
+    for (int i = abs; i > 0; i--) {
+      yield new RankVector.unit(direc);
+    }
+  }
+
+  Pos addTo(Pos pos) {
+    bool tC = thruCenter(pos.rank);
+    return new Pos(
+        tC ? 5 - (pos.rank + this.abs) : pos.rank + this.rank, pos.file);
+  }
+}
+
+abstract class DiagonalVector extends ContinousVector {
+  final bool plusfile;
+  const DiagonalVector(int abs, this.plusfile) : super(abs);
+  const DiagonalVector.unit(this.plusfile) : super.unit();
+  bool get inward;
+  int get rank => inward ? abs : -abs;
+  int get file => plusfile ? abs : -abs;
+  @override
+  bool toBool() => (abs is int) && abs > 0;
+  bool badNotInward() => (!inward) && abs > 5;
+  bool thruCenter(int fromrank) => inward && (fromrank + abs > 5);
+  bool thruCenterAndFurther(int fromrank) => inward && (fromrank + abs > 5);
+  DirectDiagonalVector _shortToCenterAlmost(int fromrank) =>
+      new DirectDiagonalVector(
+          thruCenter(fromrank) ? 5 - fromrank : abs, inward, plusfile);
+  DirectDiagonalVector shortToCenterAlmost(int fromrank) =>
+      (this is DirectDiagonalVector) ? this : _shortToCenterAlmost(fromrank);
+}
+
+class DirectDiagonalVector extends DiagonalVector {
+  final bool inward;
+  const DirectDiagonalVector(int abs, this.inward, bool plusfile)
+      : super(abs, plusfile);
+  const DirectDiagonalVector.unit(this.inward, bool plusfile)
+      : super.unit(plusfile);
+  const DirectDiagonalVector.fromNumsVec(int rank, int file)
+      : this.inward = rank > 0,
+        super(
+            ((rank < 0 ? -rank : rank) == (file < 0 ? -file : file))
+                ? (rank < 0 ? -rank : rank)
+                : null,
+            file > 0);
+  DirectDiagonalVector.fromVector(Vector vec)
+      : this.fromNumsVec(vec.rank, vec.file);
+  Iterable<DirectDiagonalVector> units(_) sync* {
+    for (int i = abs; i > 0; i--) {
+      yield new DirectDiagonalVector.unit(inward, plusfile);
+    }
+  }
+
+  Pos addTo(Pos pos) =>
+      new Pos(pos.rank + this.rank, (pos.file + this.file) % 24);
+}
+
+class LongDiagonalVector extends DiagonalVector {
+  bool get inward => true;
+  const LongDiagonalVector(int abs, bool plusfile) : super(abs, plusfile);
+  const LongDiagonalVector.unit(bool plusfile) : super.unit(plusfile);
+  const LongDiagonalVector.fromNumsVec(int rank, int file)
+      : super((rank == (file < 0 ? -file : file)) ? rank : null, file > 0);
+  LongDiagonalVector.fromVector(Vector vec)
+      : this.fromNumsVec(vec.rank, vec.file);
+  DirectDiagonalVector shortFromCenter(int fromrank) =>
+      new DirectDiagonalVector(abs - 5 + fromrank, false, !plusfile);
+  SolelyThruCenterDiagonalVector solelyThruCenter() =>
+      new SolelyThruCenterDiagonalVector(plusfile);
+  Iterable<DiagonalVector> units(int fromrank) sync* {
+    yield* this.shortToCenterAlmost(fromrank).units(fromrank);
+    Iterable<DiagonalVector> ynnull;
+    if ((ynnull = this.solelyThruCenter()?.units(fromrank))
+        is Iterable<DiagonalVector>) yield* ynnull;
+    if ((ynnull = this.shortFromCenter(fromrank)?.units(fromrank))
+        is Iterable<DiagonalVector>) yield* ynnull;
+  }
+
+  Pos addWithUnitsTo(Pos pos) => shortFromCenter(pos.rank).addTo(
+      solelyThruCenter().addTo(shortToCenterAlmost(pos.rank).addTo(pos)));
+  Pos addTo(Pos pos) => addWithUnitsTo(pos);
+}
+
+class SolelyThruCenterDiagonalVector extends DiagonalVector {
+  bool get inward => true;
+  const SolelyThruCenterDiagonalVector(bool plusfile) : super.unit(plusfile);
+  List<SolelyThruCenterDiagonalVector> units(_) =>
+      <SolelyThruCenterDiagonalVector>[this];
+  Pos addTo(Pos pos) => pos.rank == 5
+      ? new Pos(5, (pos.file + (plusfile ? -10 : 10)) % 24)
+      : null;
 }
