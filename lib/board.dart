@@ -143,7 +143,9 @@ class Board {
       6, (_) => new List<Square>.generate(24, (_) => new Square.zero()),
       growable: false);
   Board();
-  Board.fromB(this.b);
+  Board.withB(this.b);
+  Board.fromB(List<List<Square>> b) : this.b = new List<List<Square>>.from(b);
+  Board.clone(Board orig) : this.fromB(orig.b);
   Board.newGame() {
     for (final Color col in Color.colors) {
       for (int i = 0; i < 8; i++) {
@@ -163,4 +165,5 @@ class Board {
   }
 
   Square gPos(Pos pos) => b[pos.rank][pos.file];
+  bool nePos(Pos pos) => b[pos.rank][pos.file].notEmpty;
 }

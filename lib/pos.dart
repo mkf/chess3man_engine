@@ -34,6 +34,37 @@ class Pos {
   bool equal(Pos ano) => file == ano.file && rank == ano.rank;
   bool adjacentFile(Pos ano) => file + 12 % 24 == ano.file;
   bool sameOrAdjacentFile(Pos ano) => file % 12 == ano.file % 12;
+  bool diagonalsomehow(Pos ano) => canIDiagonal(ano).toBool();
+  KnightVector knightVectorTo(Pos ano,
+      {inward: null, plusfile: null, centeronecloser: null}) {
+    if (inward == null) {
+      return knightVectorTo(ano,
+              inward: false,
+              plusfile: plusfile,
+              centeronecloser: centeronecloser) ??
+          knightVectorTo(ano,
+              inward: true,
+              plusfile: plusfile,
+              centeronecloser: centeronecloser);
+    }
+    if (plusfile == null) {
+      return knightVectorTo(ano,
+              inward: inward,
+              plusfile: false,
+              centeronecloser: centeronecloser) ??
+          knightVectorTo(ano,
+              inward: inward, plusfile: true, centeronecloser: centeronecloser);
+    }
+    if (centeronecloser == null) {
+      return knightVectorTo(ano,
+              inward: inward, plusfile: plusfile, centeronecloser: false) ??
+          knightVectorTo(ano,
+              inward: inward, plusfile: plusfile, centeronecloser: true);
+    }
+    KnightVector vec = new KnightVector(inward, plusfile, centeronecloser);
+    return vec?.addTo(this)?.equal(ano) == true ? vec : null;
+  }
+
   RankVector rankVectorTo(Pos ano) => sameOrAdjacentFile(ano)
       ? new RankVector(
           sameFile(ano) ? ano.rank - rank : 5 - rank + 5 - ano.rank)
@@ -78,7 +109,6 @@ class Pos {
     return null;
   }
 
-  @deprecated
   CanIDiagonal canIDiagonal(Pos ano) {
     if (this == ano) {
       return CanIDiagonal.no;
@@ -167,7 +197,28 @@ class KnightVector implements Vector {
           ? new Pos(
               (5 + 4) - from.rank, (from.rank + (plusfile ? 1 : -1) + 12) % 24)
           : new Pos(5, (from.rank + (plusfile ? 2 : -2) + 12) % 24))
-      : null;
+      : new Pos(from.rank + rank, (from.file + file) % 24);
+  bool _xoreq(Pos f, Pos t) {
+    if (f.rank > 2 && t.rank > 2) return null;
+    int w = _xrqnmv(f.file % 8, t.file % 8);
+    return f.rank == 0 ? t.rank == w : f.rank == w ? t.rank == 0 : false;
+  }
+
+  int _xrqnmv(int ffm, int tfm) => ffm == 6
+      ? tfm == 0 ? 1 : null
+      : ffm == 7
+          ? tfm == 1 ? 1 : tfm == 0 ? 2 : null
+          : ffm == 0
+              ? tfm == 6 ? 1 : tfm == 7 ? 2 : null
+              : ffm == 1 ? tfm == 7 ? 1 : null : null;
+
+  Color moat(Pos from) {
+    Pos to = addTo(from);
+    bool xoreq = _xoreq(from, to);
+    return xoreq == true
+        ? new Color.fromSegm(((from.file + 2) ~/ 8) % 3)
+        : null;
+  }
 
   bool toBool() =>
       inward != null && plusfile != null && centeronecloser != null;
