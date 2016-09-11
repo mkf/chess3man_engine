@@ -68,12 +68,13 @@ class Piece {
 }
 
 class Fig {
-  FigType type;
-  Color color;
-  Fig(this.type, this.color);
-  Fig.zero()
-      : type = FigType.zeroFigType,
-        color = Color.zeroColor;
+  final FigType type;
+  final Color color;
+  const Fig(this.type, this.color);
+  const Fig.zero()
+      : this.type = FigType.zeroFigType,
+        this.color = Color.zeroColor;
+
   int toRune() => Piece.runeMap[type][color];
 
   ///returns `[[ _ P C C C T T T ]]`
@@ -81,9 +82,12 @@ class Fig {
       (this.pawnCenter?.toBool() == true ? 1 << 6 : 0) +
       (color.toInt() << 3) +
       type.toInt();
+  int toJson() => sevenbit;
   PawnCenter get pawnCenter => null;
   @override
   String toString() => new String.fromCharCodes(<int>[$space, toRune()]);
+  static Fig fromSevenbit(int sb) => sub(new FigType(sb & 7),
+      new Color((sb >> 3) & 7), new PawnCenter((sb >> 6) > 0));
   static Fig sub(FigType type, Color color,
       [PawnCenter pc = PawnCenter.didnt]) {
     switch (type) {
@@ -115,40 +119,44 @@ class Fig {
 }
 
 class Rook extends Fig {
-  Rook(Color color) : super(FigType.rook, color);
+  const Rook(Color color) : super(FigType.rook, color);
 }
 
 class Knight extends Fig {
-  Knight(Color color) : super(FigType.knight, color);
+  const Knight(Color color) : super(FigType.knight, color);
 }
 
 class Bishop extends Fig {
-  Bishop(Color color) : super(FigType.bishop, color);
+  const Bishop(Color color) : super(FigType.bishop, color);
 }
 
 class Queen extends Fig {
-  Queen(Color color) : super(FigType.queen, color);
+  const Queen(Color color) : super(FigType.queen, color);
 }
 
 class King extends Fig {
-  King(Color color) : super(FigType.king, color);
+  const King(Color color) : super(FigType.king, color);
 }
 
 class Pawn extends Fig {
   @override
-  PawnCenter pawnCenter;
-  Pawn(Color color, [this.pawnCenter = PawnCenter.didnt])
+  final PawnCenter pawnCenter;
+  const Pawn(Color color, [this.pawnCenter = PawnCenter.didnt])
       : super(FigType.pawn, color);
 }
 
 class Square {
   final bool notEmpty;
   final Fig fig;
-  Square(this.fig) : notEmpty = true;
-  Square.zero()
+  const Square(this.fig) : notEmpty = true;
+  const Square.zero()
       : notEmpty = false,
-        fig = new Fig.zero();
+        fig = const Fig.zero();
+  Square.fromSevenbit(int sb)
+      : this.notEmpty = sb != 0,
+        this.fig = Fig.fromSevenbit(sb);
   int get sevenbit => notEmpty ? fig.sevenbit : 0;
+  int toJson() => sevenbit;
   bool get empty => !this.notEmpty;
   Color get color => this.fig.color;
   FigType get what => this.fig.type;
@@ -159,12 +167,17 @@ class Square {
 
 class Board {
   List<List<Square>> b = new List<List<Square>>.generate(
-      6, (_) => new List<Square>.generate(24, (_) => new Square.zero()),
+      6, (_) => new List<Square>.generate(24, (_) => const Square.zero()),
       growable: false);
   Board();
   Board.withB(this.b);
   Board.fromB(List<List<Square>> b) : this.b = new List<List<Square>>.from(b);
   Board.clone(Board orig) : this.fromB(orig.b);
+  Board.fromInts(List<List<int>> li)
+      : this.withB(new List<List<Square>>.generate(
+            6,
+            (int ind) => new List<Square>.generate(
+                24, (int indf) => new Square.fromSevenbit(li[ind][indf]))));
   Board.newGame() {
     for (final Color col in Color.colors) {
       for (int i = 0; i < 8; i++) {
@@ -175,6 +188,7 @@ class Board {
       }
     }
   }
+  List<List<Square>> toJson() => b;
   void pFig(Pos pos, Fig fig) {
     b[pos.rank][pos.file] = new Square(fig);
   }
