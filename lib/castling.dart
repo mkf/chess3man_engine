@@ -24,4 +24,32 @@ class ColorCastling {
   static const ColorCastling ko = const ColorCastling(false, true);
 }
 
-class Castling {}
+class Castling {
+  final ColorCastling w;
+  final ColorCastling g;
+  final ColorCastling b;
+  const Castling(this.w, this.g, this.b);
+  Castling change(Color c, ColorCastling to) {
+    switch (c) {
+      case Color.white:
+        return new Castling(to, g, b);
+      case Color.gray:
+        return new Castling(w, to, b);
+      case Color.black:
+        return new Castling(w, g, to);
+    }
+    return null;
+  }
+
+  ColorCastling give(Color c) {
+    switch (c) {
+      case Color.white:
+        return w;
+      case Color.gray:
+        return g;
+      case Color.black:
+        return b;
+    }
+    return null;
+  }
+}
