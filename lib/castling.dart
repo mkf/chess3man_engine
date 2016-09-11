@@ -16,8 +16,8 @@ class ColorCastling {
         this.k = false;
   ColorCastling cqs(bool qs) => new ColorCastling.wcqs(this, qs);
   ColorCastling cks(bool ks) => new ColorCastling.wcks(this, ks);
-  ColorCastling offqs() => new ColorCastling.woffqs(this);
-  ColorCastling offks() => new ColorCastling.woffks(this);
+  ColorCastling offqs() => this.k ? ko : off;
+  ColorCastling offks() => this.q ? qo : off;
   static const ColorCastling off = const ColorCastling(false, false);
   static const ColorCastling all = const ColorCastling(true, true);
   static const ColorCastling qo = const ColorCastling(true, false);
