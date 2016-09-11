@@ -187,6 +187,33 @@ abstract class JumpVector implements Vector {
   }
 }
 
+abstract class CastlingVector implements JumpVector {
+  const CastlingVector();
+  Iterable<CastlingVector> units(int fromrank) sync* {
+    yield fromrank == 0 ? this : null;
+  }
+
+  static List<int> get empties => empties;
+
+  bool toBool() => true;
+  int get rank => 0;
+
+  ///King's file modulo Color (mod 8)
+  static const int kfm = 4;
+  Pos addTo(Pos pos) =>
+      pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
+}
+
+class QueensideCastlingVector extends CastlingVector {
+  int get file => -2;
+  static const List<int> empties = const <int>[3, 2, 1];
+}
+
+class KingsideCastlingVector extends CastlingVector {
+  int get file => 2;
+  static const List<int> empties = const <int>[5, 6];
+}
+
 abstract class PawnVector implements JumpVector {
   ///Returns needed `PawnCenter` value
   bool get reqpc;
