@@ -193,6 +193,7 @@ abstract class CastlingVector implements JumpVector {
     yield fromrank == 0 ? this : null;
   }
 
+  ///File numbers modulo Color for checking whether fields are empty
   static List<int> get empties => empties;
 
   bool toBool() => true;
