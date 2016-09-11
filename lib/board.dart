@@ -75,6 +75,13 @@ class Fig {
       : type = FigType.zeroFigType,
         color = Color.zeroColor;
   int toRune() => Piece.runeMap[type][color];
+
+  ///returns `[[ _ P C C C T T T ]]`
+  int get sevenbit =>
+      (this.pawnCenter?.toBool() == true ? 1 << 6 : 0) +
+      (color.toInt() << 3) +
+      type.toInt();
+  PawnCenter get pawnCenter => null;
   @override
   String toString() => new String.fromCharCodes(<int>[$space, toRune()]);
   static Fig sub(FigType type, Color color,
@@ -128,6 +135,7 @@ class King extends Fig {
 }
 
 class Pawn extends Fig {
+  @override
   PawnCenter pawnCenter;
   Pawn(Color color, [this.pawnCenter = PawnCenter.didnt])
       : super(FigType.pawn, color);
