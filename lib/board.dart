@@ -148,6 +148,7 @@ class Square {
   Square.zero()
       : notEmpty = false,
         fig = new Fig.zero();
+  int get sevenbit => notEmpty ? fig.sevenbit : 0;
   bool get empty => !this.notEmpty;
   Color get color => this.fig.color;
   FigType get what => this.fig.type;
