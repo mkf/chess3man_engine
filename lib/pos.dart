@@ -24,6 +24,7 @@ class Pos {
         this.file = 0;
   Pos.colorSegment(Color color, this.rank, int colorfile)
       : this.file = color.board << 3 + colorfile;
+  @override
   String toString() => "[$rank,$file]";
   Color get colorSegm => new Color.fromSegm(file % 8);
   Pos next() => rank == 5 && file == 23
@@ -36,7 +37,7 @@ class Pos {
   bool sameOrAdjacentFile(Pos ano) => file % 12 == ano.file % 12;
   bool diagonalsomehow(Pos ano) => canIDiagonal(ano).toBool();
   KnightVector knightVectorTo(Pos ano,
-      {inward: null, plusfile: null, centeronecloser: null}) {
+      {bool inward: null, bool plusfile: null, bool centeronecloser: null}) {
     if (inward == null) {
       return knightVectorTo(ano,
               inward: false,
@@ -156,7 +157,7 @@ class Pos {
     yield* this.diagonalVectorsTo(ano);
   }
 
-  static int wrappedFileVector(int from, int to, [long = false]) {
+  static int wrappedFileVector(int from, int to, [bool long = false]) {
     int diff = to - from;
     int sgn = diff < 0 ? -1 : 1;
     return ((diff * sgn > 12) == long) ? diff : (diff - 24 * sgn);
@@ -172,11 +173,11 @@ abstract class Vector {
 }
 
 class ZeroVector implements Vector {
+  const ZeroVector();
   int get rank => 0;
   int get file => 0;
   bool toBool() => false;
   Pos addTo(Pos from) => from;
-  const ZeroVector();
   Iterable<Vector> units(_) sync* {}
 }
 
@@ -187,19 +188,19 @@ abstract class JumpVector implements Vector {
 }
 
 abstract class PawnVector implements JumpVector {
-  ///Returns needed [PawnCenter] value
+  ///Returns needed `PawnCenter` value
   bool get reqpc;
 }
 
 class PawnLongJumpVector implements PawnVector {
+  const PawnLongJumpVector();
   int get rank => 2;
   int get file => 0;
   bool get reqpc => false;
   bool toBool() => true;
   Pos addTo(Pos from) => from.rank == 1 ? new Pos(3, from.file) : null;
   Pos enpfield(Pos from) => from.rank == 1 ? new Pos(2, from.file) : null;
-  const PawnLongJumpVector();
-  static const c = const PawnLongJumpVector();
+  static const PawnLongJumpVector c = const PawnLongJumpVector();
   Iterable<PawnLongJumpVector> units(_) sync* {
     yield c;
   }
@@ -310,10 +311,10 @@ abstract class AxisVector extends ContinousVector {
 }
 
 class FileVector extends AxisVector {
-  int get file => t;
-  int get rank => 0;
   const FileVector(int file, [bool direc = null]) : super(file % 24, direc);
   const FileVector.unit(bool direc) : super.unit(direc);
+  int get file => t;
+  int get rank => 0;
   Iterable<FileVector> units(_) sync* {
     for (int i = abs; i > 0; i--) {
       yield new FileVector.unit(direc);
@@ -324,10 +325,10 @@ class FileVector extends AxisVector {
 }
 
 class RankVector extends AxisVector {
-  int get rank => t;
-  int get file => 0;
   const RankVector(int rank, [bool direc = null]) : super(rank, direc);
   const RankVector.unit(bool direc) : super.unit(direc);
+  int get rank => t;
+  int get file => 0;
   bool thruCenter(int fromrank) => direc && fromrank + this.rank > 5;
   Iterable<RankVector> units(_) sync* {
     for (int i = abs; i > 0; i--) {
@@ -387,13 +388,13 @@ class DirectDiagonalVector extends DiagonalVector {
 }
 
 class LongDiagonalVector extends DiagonalVector {
-  bool get inward => true;
   const LongDiagonalVector(int abs, bool plusfile) : super(abs, plusfile);
   const LongDiagonalVector.unit(bool plusfile) : super.unit(plusfile);
   const LongDiagonalVector.fromNumsVec(int rank, int file)
       : super((rank == (file < 0 ? -file : file)) ? rank : null, file > 0);
   LongDiagonalVector.fromVector(Vector vec)
       : this.fromNumsVec(vec.rank, vec.file);
+  bool get inward => true;
   DirectDiagonalVector shortFromCenter(int fromrank) =>
       new DirectDiagonalVector(abs - 5 + fromrank, false, !plusfile);
   SolelyThruCenterDiagonalVector solelyThruCenter() =>
@@ -413,8 +414,8 @@ class LongDiagonalVector extends DiagonalVector {
 }
 
 class SolelyThruCenterDiagonalVector extends DiagonalVector {
-  bool get inward => true;
   const SolelyThruCenterDiagonalVector(bool plusfile) : super.unit(plusfile);
+  bool get inward => true;
   Iterable<SolelyThruCenterDiagonalVector> units(_) sync* {
     yield this;
   }

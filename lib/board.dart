@@ -8,13 +8,13 @@ export "pos.dart";
 class FigType {
   final int index;
   const FigType(this.index);
-  static const zeroFigType = const FigType(0);
-  static const rook = const FigType(1);
-  static const knight = const FigType(2);
-  static const bishop = const FigType(3);
-  static const queen = const FigType(4);
-  static const king = const FigType(5);
-  static const pawn = const FigType(6);
+  static const FigType zeroFigType = const FigType(0);
+  static const FigType rook = const FigType(1);
+  static const FigType knight = const FigType(2);
+  static const FigType bishop = const FigType(3);
+  static const FigType queen = const FigType(4);
+  static const FigType king = const FigType(5);
+  static const FigType pawn = const FigType(6);
   int toInt() => this.index;
 }
 
@@ -36,6 +36,7 @@ class PawnCenter {
   static const PawnCenter crossed = const PawnCenter(true);
   bool toBool() => this.pc;
   int interpunction() => pc ? $exclamation : $dot;
+  @override
   String toString() => pc ? "Y" : "N";
 }
 
@@ -44,19 +45,25 @@ class Piece {
   final Color color;
   Piece(this.type, this.color);
   int toRune() => runeMap[type][color];
+  @override
   String toString() => new String.fromCharCode(toRune());
-  static const _w = Color.white;
-  static const _g = Color.gray;
-  static const _b = Color.black;
-  static const _z = Color.zeroColor;
-  static const Map<FigType, Map<Color, int>> runeMap = const {
-    FigType.zeroFigType: const {_w: $equal, _g: 0x2014, _b: $minus, _z: $tilde},
-    FigType.pawn: const {_w: $P, _b: $p, _g: 0x2659, _z: $question},
-    FigType.rook: const {_w: $R, _b: $r, _g: 0x2656, _z: $question},
-    FigType.knight: const {_w: $N, _b: $n, _g: 0x2658, _z: $question},
-    FigType.bishop: const {_w: $B, _b: $b, _g: 0x2657, _z: $question},
-    FigType.queen: const {_w: $Q, _b: $q, _g: 0x2655, _z: $question},
-    FigType.king: const {_w: $K, _b: $k, _g: 0x2654, _z: $question}
+  static const Color _w = Color.white;
+  static const Color _g = Color.gray;
+  static const Color _b = Color.black;
+  static const Color _z = Color.zeroColor;
+  static const int _q = $question;
+  static const int _t = $tilde;
+  static const int _e = $equal;
+  static const int _m = $minus;
+  static const Map<FigType, Map<Color, int>> runeMap =
+      const <FigType, Map<Color, int>>{
+    FigType.zeroFigType: const <Color, int>{_w: _e, _g: 0x2014, _b: _m, _z: _t},
+    FigType.pawn: const <Color, int>{_w: $P, _b: $p, _g: 0x2659, _z: _q},
+    FigType.rook: const <Color, int>{_w: $R, _b: $r, _g: 0x2656, _z: _q},
+    FigType.knight: const <Color, int>{_w: $N, _b: $n, _g: 0x2658, _z: _q},
+    FigType.bishop: const <Color, int>{_w: $B, _b: $b, _g: 0x2657, _z: _q},
+    FigType.queen: const <Color, int>{_w: $Q, _b: $q, _g: 0x2655, _z: _q},
+    FigType.king: const <Color, int>{_w: $K, _b: $k, _g: 0x2654, _z: _q}
   };
 }
 
@@ -68,8 +75,10 @@ class Fig {
       : type = FigType.zeroFigType,
         color = Color.zeroColor;
   int toRune() => Piece.runeMap[type][color];
-  String toString() => new String.fromCharCodes([$space, toRune()]);
-  static Fig sub(type, color, [PawnCenter pc = PawnCenter.didnt]) {
+  @override
+  String toString() => new String.fromCharCodes(<int>[$space, toRune()]);
+  static Fig sub(FigType type, Color color,
+      [PawnCenter pc = PawnCenter.didnt]) {
     switch (type) {
       case FigType.rook:
         return new Rook(color);
@@ -120,7 +129,7 @@ class King extends Fig {
 
 class Pawn extends Fig {
   PawnCenter pawnCenter;
-  Pawn(Color color, [PawnCenter this.pawnCenter = PawnCenter.didnt])
+  Pawn(Color color, [this.pawnCenter = PawnCenter.didnt])
       : super(FigType.pawn, color);
 }
 
@@ -135,6 +144,7 @@ class Square {
   Color get color => this.fig.color;
   FigType get what => this.fig.type;
   static const String _emptyourstr = "__";
+  @override
   String toString() => notEmpty ? fig.toString() : _emptyourstr;
 }
 
