@@ -174,20 +174,80 @@ abstract class Vector {
 class ZeroVector implements Vector {
   int get rank => 0;
   int get file => 0;
-  int get mrank => 0;
-  int get mfile => 0;
   bool toBool() => false;
   Pos addTo(Pos from) => from;
   const ZeroVector();
   Iterable<Vector> units(_) sync* {}
 }
 
-class KnightVector implements Vector {
+abstract class JumpVector implements Vector {
+  Iterable<Vector> units(_) sync* {
+    yield this;
+  }
+}
+
+abstract class PawnVector implements JumpVector {
+  ///Returns needed [PawnCenter] value
+  bool get reqpc;
+}
+
+class PawnLongJumpVector implements PawnVector {
+  int get rank => 2;
+  int get file => 0;
+  bool get reqpc => false;
+  bool toBool() => true;
+  Pos addTo(Pos from) => from.rank == 1 ? new Pos(3, from.file) : null;
+  Pos enpfield(Pos from) => from.rank == 1 ? new Pos(2, from.file) : null;
+  const PawnLongJumpVector();
+  static const c = const PawnLongJumpVector();
+  Iterable<PawnLongJumpVector> units(_) sync* {
+    yield c;
+  }
+}
+
+class PawnWalkVector extends RankVector implements PawnVector {
+  const PawnWalkVector(bool direc) : super.unit(direc);
+  int get rank => t;
+  int get t => direc ? 1 : -1;
+  int get file => 0;
+  bool get reqpc => !this.direc;
+  bool toBool() => true;
+  bool thruCenter(int fromrank) => direc && fromrank == 5;
+  Pos addTo(Pos from) => thruCenter(from.rank)
+      ? new Pos(5, (from.file + 12) % 24)
+      : new Pos(from.rank + rank, from.file);
+}
+
+class PawnCapVector extends DiagonalVector implements PawnVector {
   final bool inward;
+  const PawnCapVector(this.inward, bool plusfile) : super.unit(plusfile);
+  bool get reqpc => !this.inward;
+  bool thruCenter(int fromrank) => inward && fromrank == 5;
+  Pos addTo(Pos pos) => thruCenter(pos.rank)
+      ? new Pos(5, SolelyThruCenterDiagonalVector.addFile(pos.file, plusfile))
+      : new Pos(
+          pos.rank + (inward ? 1 : -1), (pos.file + (plusfile ? 1 : -1)) % 24);
+  Iterable<PawnCapVector> units(_) sync* {
+    yield this;
+  }
+}
+
+class KnightVector implements JumpVector {
+  ///Towards the center, i.e. inwards
+  final bool inward;
+
+  ///Positive file direction (switched upon mirroring)
   final bool plusfile;
+
+  ///One rank closer to the center?
+  ///(about that one more (twice instead of once) rank or file)
   final bool centeronecloser;
   const KnightVector(this.inward, this.plusfile, this.centeronecloser);
+
+  ///Two times increment rank and once file?
   bool get morerank => centeronecloser == inward;
+
+  ///Two times increment file and once rank?
   bool get morefile => !morerank;
   int get rank => (inward ? 1 : -2) + (centeronecloser ? 1 : 0);
   int get file => (morefile ? 2 : 1) * (plusfile ? 1 : -1);
@@ -198,12 +258,15 @@ class KnightVector implements Vector {
               (5 + 4) - from.rank, (from.rank + (plusfile ? 1 : -1) + 12) % 24)
           : new Pos(5, (from.rank + (plusfile ? 2 : -2) + 12) % 24))
       : new Pos(from.rank + rank, (from.file + file) % 24);
+
+  ///helper for [this.moat]
   bool _xoreq(Pos f, Pos t) {
     if (f.rank > 2 && t.rank > 2) return null;
     int w = _xrqnmv(f.file % 8, t.file % 8);
     return f.rank == 0 ? t.rank == w : f.rank == w ? t.rank == 0 : false;
   }
 
+  ///helper map for [_xoreq]
   int _xrqnmv(int ffm, int tfm) => ffm == 6
       ? tfm == 0 ? 1 : null
       : ffm == 7
@@ -212,6 +275,7 @@ class KnightVector implements Vector {
               ? tfm == 6 ? 1 : tfm == 7 ? 2 : null
               : ffm == 1 ? tfm == 7 ? 1 : null : null;
 
+  ///Color of moat for this vector from [from] for use with `*BetweenThisAndNext`
   Color moat(Pos from) {
     Pos to = addTo(from);
     bool xoreq = _xoreq(from, to);
@@ -272,9 +336,9 @@ class RankVector extends AxisVector {
   }
 
   Pos addTo(Pos pos) {
-    bool tC = thruCenter(pos.rank);
-    return new Pos(
-        tC ? 5 - (pos.rank + this.abs) : pos.rank + this.rank, pos.file);
+    bool tc = thruCenter(pos.rank);
+    return new Pos(tc ? 5 - (pos.rank + this.abs) : pos.rank + this.rank,
+        tc ? (pos.file + 12) % 24 : pos.file);
   }
 }
 
@@ -355,7 +419,8 @@ class SolelyThruCenterDiagonalVector extends DiagonalVector {
     yield this;
   }
 
-  Pos addTo(Pos pos) => pos.rank == 5
-      ? new Pos(5, (pos.file + (plusfile ? -10 : 10)) % 24)
-      : null;
+  Pos addTo(Pos pos) =>
+      pos.rank == 5 ? new Pos(5, addFile(pos.file, plusfile)) : null;
+  static int addFile(int posfile, bool plusfile) =>
+      (posfile + (plusfile ? -10 : 10)) % 24;
 }
