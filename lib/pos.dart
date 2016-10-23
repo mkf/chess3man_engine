@@ -82,6 +82,75 @@ class Pos {
     if (longfileVector is FileVector) yield longfileVector;
   }
 
+  FileVector kingFileVectorTo(Pos ano) {
+    FileVector tryin = new FileVector.unit(true);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    tryin = new FileVector.unit(false);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    return null;
+  }
+
+  RankVector kingRankVectorTo(Pos ano) {
+    RankVector tryin = new RankVector.unit(true);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    tryin = new RankVector.unit(false);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    return null;
+  }
+
+  AxisVector kingAxisVectorTo(Pos ano) =>
+      kingFileVectorTo(ano) ?? kingAxisVectorTo(ano);
+
+  DiagonalVector kingDiagVectorTo(Pos ano) {
+    return null;
+  }
+
+  ContinousVector kingContVectorTo(Pos ano) =>
+      kingAxisVectorTo(ano) ?? kingDiagVectorTo(ano);
+
+  Vector kingVectorTo(Pos ano) =>
+      kingContVectorTo(ano) ?? castlingVectorTo(ano);
+
+  PawnWalkVector pawnWalkVectorTo(Pos ano) {
+    PawnWalkVector tryin = new PawnWalkVector(true);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    tryin = new PawnWalkVector(false);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    return null;
+  }
+
+  PawnLongJumpVector pawnLongJumpVectorTo(Pos ano) =>
+      PawnLongJumpVector.c.addTo(this).equal(ano) ? PawnLongJumpVector.c : null;
+
+  PawnCapVector pawnCapVectorTo(Pos ano) {
+    PawnCapVector tryin = new PawnCapVector(false, false);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    tryin = new PawnCapVector(false, true);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    tryin = new PawnCapVector(true, false);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    tryin = new PawnCapVector(true, true);
+    if (tryin.addTo(this).equal(ano)) return tryin;
+    return null;
+  }
+
+  PawnVector pawnVectorTo(Pos ano) =>
+      pawnLongJumpVectorTo(ano) ??
+      pawnWalkVectorTo(ano) ??
+      pawnCapVectorTo(ano);
+
+  CastlingVector castlingVectorTo(Pos ano) {
+    if (this.rank != 0 || ano.rank != 0 || this.file % 8 != CastlingVector.kfm)
+      return null;
+    switch (ano.file % 8) {
+      case 2:
+        return new QueensideCastlingVector();
+      case 6:
+        return new KingsideCastlingVector();
+    }
+    return null;
+  }
+
   DiagonalVector shorterDiagonalVectorTo(Pos ano,
       {bool positivesgn: null, bool short: null, bool long: null}) {
     if (short != false && rank != ano.rank) {
@@ -244,7 +313,7 @@ class PawnWalkVector extends RankVector implements PawnVector {
   bool thruCenter(int fromrank) => direc && fromrank == 5;
   Pos addTo(Pos from) => thruCenter(from.rank)
       ? new Pos(5, (from.file + 12) % 24)
-      : new Pos(from.rank + rank, from.file);
+      : (from.rank == 0) != reqpc ? new Pos(from.rank + rank, from.file) : null;
 }
 
 class PawnCapVector extends DiagonalVector implements PawnVector {
