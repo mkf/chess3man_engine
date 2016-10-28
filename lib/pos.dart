@@ -275,10 +275,10 @@ abstract class CastlingVector implements JumpVector {
   Pos addTo(Pos pos) =>
       pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
   Iterable<Pos> emptiesFrom(Pos from) sync* {
-    if(from.file%8==kfm) {
-      int add = from.file-kfm;
-      for(final int toempt in empties) {
-        yield new Pos(0, add+toempt);
+    if (from.file % 8 == kfm) {
+      int add = from.file - kfm;
+      for (final int toempt in empties) {
+        yield new Pos(0, add + toempt);
       }
     }
   }
@@ -311,6 +311,7 @@ class PawnLongJumpVector implements PawnVector {
   Iterable<PawnLongJumpVector> units(_) sync* {
     yield c;
   }
+
   Iterable<Pos> emptiesFrom(Pos from) sync* {
     yield enpfield(from);
     yield addTo(from);
@@ -336,13 +337,23 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   const PawnCapVector(this.inward, bool plusfile) : super.unit(plusfile);
   bool get reqpc => !this.inward;
   bool thruCenter(int fromrank) => inward && fromrank == 5;
-  Pos addTo(Pos pos) => thruCenter(pos.rank)
-      ? new Pos(5, SolelyThruCenterDiagonalVector.addFile(pos.file, plusfile))
-      : new Pos(
-          pos.rank + (inward ? 1 : -1), (pos.file + (plusfile ? 1 : -1)) % 24);
+  bool creek(Pos from) => from.rank >= 3
+      ? false
+      : plusfile
+          ? (from.file % 8 == 7) ? true : false
+          : (from.file % 8 == 0) ? true : false;
+
+  Pos addTo(Pos pos) => creek(pos)
+      ? null
+      : thruCenter(pos.rank)
+          ? new Pos(
+              5, SolelyThruCenterDiagonalVector.addFile(pos.file, plusfile))
+          : new Pos(pos.rank + (inward ? 1 : -1),
+              (pos.file + (plusfile ? 1 : -1)) % 24);
   Iterable<PawnCapVector> units(_) sync* {
     yield this;
   }
+
   Iterable<Pos> emptiesFrom(_) sync* {}
 }
 
@@ -403,6 +414,7 @@ class KnightVector implements JumpVector {
   Iterable<KnightVector> units(_) sync* {
     yield this;
   }
+
   Iterable<Pos> emptiesFrom(_) sync* {}
   Iterable<Pos> emptiesBetween(_) sync* {}
 }
@@ -417,10 +429,12 @@ abstract class ContinousVector implements Vector {
   Iterable<Pos> emptiesFrom(Pos from) => emptiesBetween(from);
   Iterable<Pos> emptiesBetween(Pos from) sync* {
     Pos pos = from;
-    bool nofrom = false;    //between
+    bool nofrom = false; //between
     for (final ContinousVector u in units(from.rank)) {
-      if(nofrom) yield pos; //between
-      else nofrom=true;     //between
+      if (nofrom)
+        yield pos; //between
+      else
+        nofrom = true; //between
       pos = u.addTo(pos);
       //yield pos;          //incl. destination
     }
