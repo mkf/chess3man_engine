@@ -529,6 +529,18 @@ abstract class DiagonalVector extends ContinousVector {
           thruCenter(fromrank) ? 5 - fromrank : abs, inward, plusfile);
   DirectDiagonalVector shortToCenterAlmost(int fromrank) =>
       (this is DirectDiagonalVector) ? this : _shortToCenterAlmost(fromrank);
+  DiagonalVector get reversed;
+  Iterable<Color> moats(Pos from) sync* {
+    yield moat(from);
+  }
+
+  Color moat(Pos from, [bool noreverse = false]) =>
+      ((from.rank == 0)
+          ? plusfile
+              ? (from.file % 8 == 7) ? from.colorSegm : null
+              : (from.file % 8 == 0) ? from.colorSegm.previous : null
+          : null) ??
+      (noreverse ? null : reversed.moat(addTo(from), true));
 }
 
 class DirectDiagonalVector extends DiagonalVector {
@@ -546,6 +558,8 @@ class DirectDiagonalVector extends DiagonalVector {
             file > 0);
   DirectDiagonalVector.fromVector(Vector vec)
       : this.fromNumsVec(vec.rank, vec.file);
+  DirectDiagonalVector get reversed =>
+      new DirectDiagonalVector(abs, !inward, !plusfile);
   Iterable<DirectDiagonalVector> units(_) sync* {
     for (int i = abs; i > 0; i--) {
       yield new DirectDiagonalVector.unit(inward, plusfile);
@@ -564,6 +578,7 @@ class LongDiagonalVector extends DiagonalVector {
   LongDiagonalVector.fromVector(Vector vec)
       : this.fromNumsVec(vec.rank, vec.file);
   bool get inward => true;
+  LongDiagonalVector get reversed => new LongDiagonalVector(abs, !plusfile);
   DirectDiagonalVector shortFromCenter(int fromrank) =>
       new DirectDiagonalVector(abs - 5 + fromrank, false, !plusfile);
   SolelyThruCenterDiagonalVector solelyThruCenter() =>
@@ -585,6 +600,9 @@ class LongDiagonalVector extends DiagonalVector {
 class SolelyThruCenterDiagonalVector extends DiagonalVector {
   const SolelyThruCenterDiagonalVector(bool plusfile) : super.unit(plusfile);
   bool get inward => true;
+  SolelyThruCenterDiagonalVector get reversed =>
+      new SolelyThruCenterDiagonalVector(!plusfile);
+  @override
   Iterable<Color> moats(_) sync* {}
   Iterable<SolelyThruCenterDiagonalVector> units(_) sync* {
     yield this;
