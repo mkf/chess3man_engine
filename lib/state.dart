@@ -47,7 +47,17 @@ class State {
   final int fullmovenumber;
   final PlayersAlive alivecolors;
   //TODO: bool equal(State s) =>
-  String toString() => board.toString() +
+  const State(
+      this.board,
+      this.moatsstate,
+      this.movesnext,
+      this.castling,
+      this.enpassant,
+      this.halfmoveclock,
+      this.alivecolors,
+      this.fullmovenumber);
+  String toString() =>
+      board.toString() +
       moatsstate.toString() +
       movesnext.toString() +
       castling.toString() +

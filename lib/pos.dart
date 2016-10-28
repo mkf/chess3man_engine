@@ -239,6 +239,7 @@ abstract class Vector {
   Pos addTo(Pos from);
   bool toBool() => ((rank is int) && (file is int)) && (rank != 0 || file != 0);
   Iterable<Vector> units(int fromrank);
+  Iterable<Pos> emptiesFrom(Pos from);
 }
 
 class ZeroVector implements Vector {
@@ -248,6 +249,7 @@ class ZeroVector implements Vector {
   bool toBool() => false;
   Pos addTo(Pos from) => from;
   Iterable<Vector> units(_) sync* {}
+  Iterable<Pos> emptiesFrom(_) sync* {}
 }
 
 abstract class JumpVector implements Vector {
@@ -272,6 +274,14 @@ abstract class CastlingVector implements JumpVector {
   static const int kfm = 4;
   Pos addTo(Pos pos) =>
       pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
+  Iterable<Pos> emptiesFrom(Pos from) sync* {
+    if(from.file%8==kfm) {
+      int add = from.file-kfm;
+      for(final int toempt in empties) {
+        yield new Pos(0, add+toempt);
+      }
+    }
+  }
 }
 
 class QueensideCastlingVector extends CastlingVector {
@@ -301,6 +311,10 @@ class PawnLongJumpVector implements PawnVector {
   Iterable<PawnLongJumpVector> units(_) sync* {
     yield c;
   }
+  Iterable<Pos> emptiesFrom(Pos from) sync* {
+    yield enpfield(from);
+    yield addTo(from);
+  }
 }
 
 class PawnWalkVector extends RankVector implements PawnVector {
@@ -314,6 +328,7 @@ class PawnWalkVector extends RankVector implements PawnVector {
   Pos addTo(Pos from) => thruCenter(from.rank)
       ? new Pos(5, (from.file + 12) % 24)
       : (from.rank == 0) != reqpc ? new Pos(from.rank + rank, from.file) : null;
+  Iterable<Pos> emptiesFrom(_) sync* {}
 }
 
 class PawnCapVector extends DiagonalVector implements PawnVector {
@@ -328,6 +343,7 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   Iterable<PawnCapVector> units(_) sync* {
     yield this;
   }
+  Iterable<Pos> emptiesFrom(_) sync* {}
 }
 
 class KnightVector implements JumpVector {
@@ -387,6 +403,8 @@ class KnightVector implements JumpVector {
   Iterable<KnightVector> units(_) sync* {
     yield this;
   }
+  Iterable<Pos> emptiesFrom(_) sync* {}
+  Iterable<Pos> emptiesBetween(_) sync* {}
 }
 
 abstract class ContinousVector implements Vector {
@@ -396,6 +414,17 @@ abstract class ContinousVector implements Vector {
   @override
   bool toBool() => (abs is int) && abs != 0;
   Iterable<ContinousVector> units(int fromrank);
+  Iterable<Pos> emptiesFrom(Pos from) => emptiesBetween(from);
+  Iterable<Pos> emptiesBetween(Pos from) sync* {
+    Pos pos = from;
+    bool nofrom = false;    //between
+    for (final ContinousVector u in units(from.rank)) {
+      if(nofrom) yield pos; //between
+      else nofrom=true;     //between
+      pos = u.addTo(pos);
+      //yield pos;          //incl. destination
+    }
+  }
 }
 
 abstract class AxisVector extends ContinousVector {

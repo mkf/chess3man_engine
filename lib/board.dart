@@ -76,9 +76,7 @@ class Fig {
         this.color = Color.zeroColor;
 
   int toRune() => Piece.runeMap[type][color];
-  @override
   static Vector vec(Pos from, Pos to) => null;
-  @override
   static Iterable<Vector> vecs(Pos from, Pos to) sync* {
     yield vec(from, to);
   }
@@ -126,15 +124,15 @@ class Fig {
 
 class Rook extends Fig {
   const Rook(Color color) : super(FigType.rook, color);
-  @override
+  //@override
   static Iterable<AxisVector> vecs(Pos from, Pos to) => from.axisVectorsTo(to);
 }
 
 class Knight extends Fig {
   const Knight(Color color) : super(FigType.knight, color);
-  @override
+  //@override
   static KnightVector vec(Pos from, Pos to) => from.knightVectorTo(to);
-  @override
+  //@override
   static Iterable<KnightVector> vecs(Pos from, Pos to) sync* {
     yield vec(from, to);
   }
@@ -142,21 +140,21 @@ class Knight extends Fig {
 
 class Bishop extends Fig {
   const Bishop(Color color) : super(FigType.bishop, color);
-  @override
+  //@override
   static Iterable<DiagonalVector> vecs(Pos from, Pos to) =>
       from.diagonalVectorsTo(to);
 }
 
 class Queen extends Fig {
   const Queen(Color color) : super(FigType.queen, color);
-  @override
+  //@override
   static Iterable<ContinousVector> vecs(Pos from, Pos to) =>
       from.continousVectorsTo(to);
 }
 
 class King extends Fig {
   const King(Color color) : super(FigType.king, color);
-  @override
+  //@override
   static Vector vec(Pos from, Pos to) => from.kingVectorTo(to);
 }
 
@@ -165,7 +163,7 @@ class Pawn extends Fig {
   final PawnCenter pawnCenter;
   const Pawn(Color color, [this.pawnCenter = PawnCenter.didnt])
       : super(FigType.pawn, color);
-  @override
+  //@override
   static Vector vec(Pos from, Pos to) => from.pawnVectorTo(to);
 }
 
