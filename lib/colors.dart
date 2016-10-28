@@ -9,8 +9,8 @@ class Color {
   static const Color gray = const Color(2);
   static const Color black = const Color(3);
   int toInt() => this.index;
-  Color next() => new Color(index % 3 + 1);
-  Color previous() => new Color(index % 3 - 1 % 3);
+  Color get next => new Color(index % 3 + 1);
+  Color get previous => new Color(index % 3 - 1 % 3);
   int get board => this.index - 1;
   static const List<Color> colors = const <Color>[white, gray, black];
   static const Map<Color, String> strings = const <Color, String>{

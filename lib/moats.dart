@@ -16,7 +16,7 @@ class MoatsState {
         this.wg = false,
         this.gb = false;
   bool isBridgedBetween(Color a, Color b) {
-    Color bef = a.next() == b ? a : b.next() == a ? b : null;
+    Color bef = a.next == b ? a : b.next == a ? b : null;
     assert(bef != null);
     return isBridgedBetweenThisAndNext(bef);
   }
@@ -49,12 +49,12 @@ class MoatsState {
 
   _ShortLong areBridgedBetweenThisAndPrevious(Color col) => new _ShortLong(
       isBridgedBetweenThisAndPrevious(col),
-      isBridgedBetweenThisAndPrevious(col.previous()) &&
-          isBridgedBetweenThisAndPrevious(col.next()));
+      isBridgedBetweenThisAndPrevious(col.previous) &&
+          isBridgedBetweenThisAndPrevious(col.next));
   _ShortLong areBridgedBetweenThisAndNext(Color col) => new _ShortLong(
       isBridgedBetweenThisAndNext(col),
-      isBridgedBetweenThisAndNext(col.previous()) &&
-          isBridgedBetweenThisAndNext(col.next()));
+      isBridgedBetweenThisAndNext(col.previous) &&
+          isBridgedBetweenThisAndNext(col.next));
 }
 
 class _ShortLong {

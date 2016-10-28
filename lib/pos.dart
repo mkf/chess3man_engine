@@ -240,6 +240,7 @@ abstract class Vector {
   bool toBool() => ((rank is int) && (file is int)) && (rank != 0 || file != 0);
   Iterable<Vector> units(int fromrank);
   Iterable<Pos> emptiesFrom(Pos from);
+  Iterable<Color> moats(Pos from);
 }
 
 class ZeroVector implements Vector {
@@ -250,6 +251,7 @@ class ZeroVector implements Vector {
   Pos addTo(Pos from) => from;
   Iterable<Vector> units(_) sync* {}
   Iterable<Pos> emptiesFrom(_) sync* {}
+  Iterable<Color> moats(_) sync* {}
 }
 
 abstract class JumpVector implements Vector {
@@ -274,6 +276,7 @@ abstract class CastlingVector implements JumpVector {
   static const int kfm = 4;
   Pos addTo(Pos pos) =>
       pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
+  Iterable<Color> moats(_) sync* {}
   Iterable<Pos> emptiesFrom(Pos from) sync* {
     if (from.file % 8 == kfm) {
       int add = from.file - kfm;
@@ -312,6 +315,7 @@ class PawnLongJumpVector implements PawnVector {
     yield c;
   }
 
+  Iterable<Color> moats(_) sync* {}
   Iterable<Pos> emptiesFrom(Pos from) sync* {
     yield enpfield(from);
     yield addTo(from);
@@ -326,6 +330,7 @@ class PawnWalkVector extends RankVector implements PawnVector {
   bool get reqpc => !this.direc;
   bool toBool() => true;
   bool thruCenter(int fromrank) => direc && fromrank == 5;
+  Iterable<Color> moats(_) sync* {}
   Pos addTo(Pos from) => thruCenter(from.rank)
       ? new Pos(5, (from.file + 12) % 24)
       : (from.rank == 0) != reqpc ? new Pos(from.rank + rank, from.file) : null;
@@ -337,6 +342,8 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   const PawnCapVector(this.inward, bool plusfile) : super.unit(plusfile);
   bool get reqpc => !this.inward;
   bool thruCenter(int fromrank) => inward && fromrank == 5;
+  Iterable<Color> moats(
+      _) sync* {} //I guess PC pawns cannot capture thru bridged
   bool creek(Pos from) => from.rank >= 3
       ? false
       : plusfile
@@ -409,6 +416,11 @@ class KnightVector implements JumpVector {
         : null;
   }
 
+  ///Colors of moats for this vector from [from] for use with `*BetweenThisAndNext`
+  Iterable<Color> moats(Pos from) sync* {
+    yield moat(from);
+  }
+
   bool toBool() =>
       inward != null && plusfile != null && centeronecloser != null;
   Iterable<KnightVector> units(_) sync* {
@@ -461,6 +473,22 @@ class FileVector extends AxisVector {
     }
   }
 
+  Iterable<Color> moats(Pos from) sync* {
+    if (from.rank == 0) {
+      int left = from.file % 8;
+      int tm = direc ? 8 - left : left;
+      Color start = from.colorSegm;
+      int moating = abs - tm;
+      if (moating > 0) {
+        yield direc ? start : start.previous;
+        if (moating > 8) {
+          yield start.next;
+          if (moating > 16) yield direc ? start.previous : start;
+        }
+      }
+    }
+  }
+
   Pos addTo(Pos pos) => new Pos(pos.rank, (pos.file + this.file) % 24);
 }
 
@@ -470,6 +498,7 @@ class RankVector extends AxisVector {
   int get rank => t;
   int get file => 0;
   bool thruCenter(int fromrank) => direc && fromrank + this.rank > 5;
+  Iterable<Color> moats(_) sync* {}
   Iterable<RankVector> units(_) sync* {
     for (int i = abs; i > 0; i--) {
       yield new RankVector.unit(direc);
@@ -556,6 +585,7 @@ class LongDiagonalVector extends DiagonalVector {
 class SolelyThruCenterDiagonalVector extends DiagonalVector {
   const SolelyThruCenterDiagonalVector(bool plusfile) : super.unit(plusfile);
   bool get inward => true;
+  Iterable<Color> moats(_) sync* {}
   Iterable<SolelyThruCenterDiagonalVector> units(_) sync* {
     yield this;
   }
