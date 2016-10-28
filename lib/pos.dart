@@ -26,7 +26,7 @@ class Pos {
       : this.file = color.board << 3 + colorfile;
   @override
   String toString() => "[$rank,$file]";
-  Color get colorSegm => new Color.fromSegm(file % 8);
+  Color get colorSegm => new Color.fromSegm(file ~/ 8);
   Pos next() => rank == 5 && file == 23
       ? null
       : new Pos(file == 23 ? rank + 1 : rank, file == 23 ? 0 : file + 1);
