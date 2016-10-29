@@ -7,14 +7,15 @@ import "castling.dart";
 import 'epstore.dart';
 import 'colors.dart';
 import 'castlingcheck.dart';
+import 'dart:async';
 
 bool checkempties(Pos from, Board b, Vector v) {
   for (final Pos a in v.emptiesFrom(from)) if (b.nePos(a)) return false;
   return true;
 }
 
-bool possib(
-    Pos from, Board b, Vector v, MoatsState m, EnPassantStore ep, Castling c) {
+Future<bool> possib(Pos from, Board b, Vector v, MoatsState m,
+    EnPassantStore ep, Castling c) async {
   Square fromsq = b.gPos(from); //Square we are from
   Color ourcolor = fromsq.color; //Color of from
   Pos to = v.addTo(from); //our destination Pos
@@ -28,7 +29,7 @@ bool possib(
   //which was In-Reply-To: <20151101235348.GA32145@tichy>
   //which was In-Reply-To: <150c55f51d7-6425-13626@webprd-m75.mail.aol.com>
   //which was In-Reply-To: <20151031110645.GA25362@tichy>
-  if (from==to) return false;
+  if (from == to) return false;
 
   //En passant capturing :
   if ((v is PawnCapVector) && (tosq.empty && (ep.match(to)))) return false;
