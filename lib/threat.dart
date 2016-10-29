@@ -36,3 +36,10 @@ Future<Pos> threatChecking(
   }
   return null;
 }
+
+Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) async {
+  assert(pa.give(who));
+  Pos wking = await whereIsKing(b, who);
+  assert(wking != null);
+  return await threatChecking(b, wking, pa, EnPassantStore.empty);
+}
