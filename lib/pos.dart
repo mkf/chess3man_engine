@@ -275,7 +275,7 @@ abstract class CastlingVector implements JumpVector {
   ///King's file modulo Color (mod 8)
   static const int kfm = 4;
   Pos addTo(Pos pos) =>
-      pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
+      pos.rank == 0 && pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
   Iterable<Color> moats(_) sync* {}
   Iterable<Pos> emptiesFrom(Pos from) sync* {
     if (from.file % 8 == kfm) {
@@ -331,7 +331,7 @@ class PawnWalkVector extends RankVector implements PawnVector {
   int get file => 0;
   bool get reqpc => !this.direc;
   bool toBool() => true;
-  bool reqProm(int rank) => rank+t==0;
+  bool reqProm(int rank) => rank + t == 0;
   bool thruCenter(int fromrank) => direc && fromrank == 5;
   Iterable<Color> moats(_) sync* {}
   Pos addTo(Pos from) => thruCenter(from.rank)
@@ -344,7 +344,7 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   final bool inward;
   const PawnCapVector(this.inward, bool plusfile) : super.unit(plusfile);
   bool get reqpc => !this.inward;
-  bool reqProm(int rank) => (!inward)&&(rank==1);
+  bool reqProm(int rank) => (!inward) && (rank == 1);
   bool thruCenter(int fromrank) => inward && fromrank == 5;
   Iterable<Color> moats(
       _) sync* {} //I guess PC pawns cannot capture thru bridged
@@ -364,6 +364,7 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   Iterable<PawnCapVector> units(_) sync* {
     yield this;
   }
+
   PawnCapVector get reversed => null;
 
   Iterable<Pos> emptiesFrom(_) sync* {}

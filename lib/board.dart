@@ -224,4 +224,9 @@ class Board {
 
   Square gPos(Pos pos) => b[pos.rank][pos.file];
   bool nePos(Pos pos) => b[pos.rank][pos.file].notEmpty;
+
+  void mFig(Pos from, Pos to) {
+    pFig(to, gPos(from).fig);
+    empt(from);
+  }
 }

@@ -9,6 +9,8 @@ import 'colors.dart';
 import 'castling.dart';
 import 'epstore.dart';
 import 'prom.dart';
+import 'moats.dart';
+import 'afterboard.dart';
 
 class Move {
   final Pos from;
@@ -53,6 +55,17 @@ class Move {
       if (from.file == who.board * 8) colorCastling = colorCastling.offqs();
       if (from.file == who.board * 8 + 7) colorCastling = colorCastling.offks();
     }
+    Castling castling = before.castling.change(who, colorCastling);
+    if (to.rank == 0) {
+      if (to.file % 8 == 7) {
+        Color segmCol = to.colorSegm;
+        castling.change(segmCol, castling.give(segmCol).offks());
+      } else if (to.file % 8 == 0) {
+        Color segmCol = to.colorSegm;
+        castling.change(segmCol, castling.give(segmCol).offqs());
+      } else if (to.file % 8 == CastlingVector.kfm)
+        castling.change(to.colorSegm, ColorCastling.off);
+    }
     int halfMoveClock = (what.type == FigType.pawn || tosq.notEmpty)
         ? 0
         : before.halfmoveclock + 1;
@@ -66,6 +79,38 @@ class Move {
         (!(vec is PawnPromVector)) &&
         (vec as PawnVector).reqProm(from.rank))
       throw new NeedsToBePromotedError(this);
+    Board b = await afterBoard(before.board, vec, from, before.enpassant);
+    MoatsState moatsState = before.moatsstate;
+    if ((!(vec is CastlingVector)) &&
+        ((!(vec is PawnVector)) || (vec is PawnPromVector))) {
+      for (final Color curmoat in Color.colors) {
+        if (moatsState.isBridgedBetweenThisAndPrevious(curmoat) &&
+            moatsState.isBridgedBetweenThisAndNext(curmoat)) break;
+        if (!before.alivecolors.give(curmoat)) {
+          moatsState = moatsState.bridgeBothSidesOfColor(curmoat);
+          break;
+        }
+        bool moatbridging = true;
+        for (int i = curmoat.board * 8;
+            moatbridging && i < (curmoat.board + 1) * 8;
+            i++) {
+          if (b.gPos(new Pos(0, i)).color == curmoat) moatbridging = false;
+        }
+        if (moatbridging)
+          moatsState = moatsState.bridgeBothSidesOfColor(curmoat);
+      }
+    }
+    return new State(
+        b,
+        moatsState,
+        before.alivecolors.give(before.movesnext.next)
+            ? before.movesnext.next
+            : before.movesnext.previous,
+        castling,
+        enPassantStore,
+        halfMoveClock,
+        before.alivecolors,
+        before.fullmovenumber + 1);
   }
 }
 

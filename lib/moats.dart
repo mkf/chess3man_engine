@@ -44,6 +44,9 @@ class MoatsState {
   MoatsState bridgeBetweenThisAndNext(Color col) =>
       changeBetweenThisAndNext(col, true);
 
+  MoatsState bridgeBothSidesOfColor(Color col) =>
+      bridgeBetweenThisAndPrevious(col).bridgeBetweenThisAndNext(col);
+
   bool isBridgedBetweenThisAndPrevious(Color col) {
     switch (col) {
       case Color.black:

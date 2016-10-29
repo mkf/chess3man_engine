@@ -32,7 +32,14 @@ Future<bool> possib(Pos from, Board b, Vector v, MoatsState m,
   if (from == to) return false;
 
   //En passant capturing :
-  if ((v is PawnCapVector) && (tosq.empty && (ep.match(to)))) return false;
+  if (v is PawnCapVector &&
+      tosq.empty && //!ep.match(to))
+      !(ep.last.equal(to) &&
+          b.gPos(new Pos(3, ep.last.file)).color == ourcolor.previous) &&
+      !(ep.prev.equal(to) &&
+          b.gPos(new Pos(3, ep.prev.file)).color == ourcolor.next)) {
+    return false;
+  }
 
   //Cannot capture our own piece
   if (tocol == ourcolor) return false;

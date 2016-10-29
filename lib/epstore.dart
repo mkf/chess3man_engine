@@ -3,8 +3,8 @@ library chess3man.engine.epstore;
 import "pos.dart";
 
 class EnPassantStore {
-  final Pos prev;
-  final Pos last;
+  final Pos prev; //you can capture next color
+  final Pos last; //you can capture previous color
   const EnPassantStore(this.prev, this.last);
   EnPassantStore appeared(Pos p) => new EnPassantStore(last, p);
   EnPassantStore nothing() => new EnPassantStore(last, null);
