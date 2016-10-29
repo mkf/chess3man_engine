@@ -9,7 +9,7 @@ import 'colors.dart';
 import 'castlingcheck.dart';
 import 'dart:async';
 
-bool checkempties(Pos from, Board b, Vector v) {
+Future<bool> checkempties(Pos from, Board b, Vector v) async {
   for (final Pos a in v.emptiesFrom(from)) if (b.nePos(a)) return false;
   return true;
 }
@@ -38,7 +38,7 @@ Future<bool> possib(Pos from, Board b, Vector v, MoatsState m,
   if (tocol == ourcolor) return false;
 
   //If there are pieces in our way return false
-  if (!checkempties(from, b, v)) return false;
+  if (!(await checkempties(from, b, v))) return false;
 
   //Set of moats colliding
   Set<Color> moats = new Set<Color>.from(v.moats(from));
