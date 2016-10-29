@@ -30,7 +30,7 @@ Future<Pos> threatChecking(
           possib(opos, b, vec, new MoatsState.noBridges(), ep, Castling.off));
       Stream<bool> strofbools = new Stream<bool>.fromFutures(futbools);
       Future<bool> thebool = (strofbools.firstWhere((bool elem) => elem,
-          defaultValue: () => false)) as Future<bool>; // ignore: avoid_as
+          defaultValue: () => false)) as Future<bool>; //TODO: avoid [as]
       if (await thebool) return opos;
     }
   }
