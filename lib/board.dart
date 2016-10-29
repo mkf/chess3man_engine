@@ -81,6 +81,9 @@ class Fig {
     yield vec(from, to);
   }
 
+  ///Static member vecs couldn't be accessed using instance access
+  Iterable<Vector> vecs_ns(Pos from, Pos to) => vecs(from, to);
+
   ///returns `[[ _ P C C C T T T ]]`
   int get sevenbit =>
       (this.pawnCenter?.toBool() == true ? 1 << 6 : 0) +

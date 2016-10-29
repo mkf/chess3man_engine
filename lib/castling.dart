@@ -52,4 +52,6 @@ class Castling {
     }
     return null;
   }
+  static const Castling off = const Castling(ColorCastling.off, ColorCastling.off, ColorCastling.off);
+  static const Castling all = const Castling(ColorCastling.all, ColorCastling.all, ColorCastling.all);
 }
