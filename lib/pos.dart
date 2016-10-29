@@ -360,6 +360,7 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   Iterable<PawnCapVector> units(_) sync* {
     yield this;
   }
+  PawnCapVector get reversed => null;
 
   Iterable<Pos> emptiesFrom(_) sync* {}
 }
