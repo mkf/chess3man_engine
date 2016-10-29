@@ -7,7 +7,6 @@ import 'possib.dart';
 import 'dart:async';
 import 'colors.dart';
 import 'castling.dart';
-import 'castlingcheck.dart';
 import 'epstore.dart';
 import 'prom.dart';
 
