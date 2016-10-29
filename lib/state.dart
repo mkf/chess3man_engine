@@ -38,14 +38,14 @@ class PlayersAlive {
 }
 
 class State {
-  final Board board; //mutable
-  final MoatsState moatsstate;
-  final Color movesnext;
-  final Castling castling;
-  final EnPassantStore enpassant;
-  final int halfmoveclock;
-  final int fullmovenumber;
-  final PlayersAlive alivecolors;
+  final Board board; //MUTABLE
+  final MoatsState moatsstate; //immutable
+  final Color movesnext; //immutable
+  final Castling castling; //immutable
+  final EnPassantStore enpassant; //immutable
+  final int halfmoveclock; //immutable
+  final int fullmovenumber; //immutable
+  final PlayersAlive alivecolors; //immutable
   //TODO: bool equal(State s) =>
   const State(
       this.board,
@@ -56,6 +56,16 @@ class State {
       this.halfmoveclock,
       this.alivecolors,
       this.fullmovenumber);
+  State.clone(State from)
+      : this(
+            new Board.clone(from.board),
+            from.moatsstate,
+            from.movesnext,
+            from.castling,
+            from.enpassant,
+            from.halfmoveclock,
+            from.alivecolors,
+            from.fullmovenumber);
   String toString() =>
       board.toString() +
       moatsstate.toString() +
