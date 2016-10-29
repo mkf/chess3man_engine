@@ -4,6 +4,8 @@ import 'pos.dart';
 import 'state.dart';
 import 'board.dart';
 import 'possib.dart';
+import 'dart:async';
+import 'colors.dart';
 
 class Move {
   final Pos from;
@@ -23,32 +25,32 @@ class Move {
     if (!(await possib(
         from,
         before.board,
-        bec,
+        vec,
         before.moatsstate,
         before.enpassant,
         before.castling))) throw new ImpossibleMoveError(this);
     return true;
   }
   Future<State> after() async {
-    assert (possible());
+    assert (await possible());
     //TODO
   }
 }
 
-class IllegalMoveError extends Exception {
+abstract class IllegalMoveError extends StateError {
   final Move m;
-  IllegalMoveError(this.m);
+  IllegalMoveError(this.m, String msg) : super(msg);
 }
 
 class NothingHereAlreadyError extends IllegalMoveError {
-  NothingHereAlreadyError(Move m) : super(m);
+  NothingHereAlreadyError(Move m) : super(m, "How do you move that which does not exist?");
 }
 
 class ThatColorDoesNotMoveNowError extends IllegalMoveError {
   final Color c;
-  ThatColorDoesNotMoveNowError(Move m, this.c) : super(m);
+  ThatColorDoesNotMoveNowError(Move m, this.c) : super(m, "That is not "+m.what.color.toString()+"'s move, but "+m.before.movesnext.toString()+"'s");
 }
 
 class ImpossibleMoveError extends IllegalMoveError {
-  ImpossibleMoveError(Move m) : super(m);
+  ImpossibleMoveError(Move m) : super(m, "Illegal/impossible move");
 }

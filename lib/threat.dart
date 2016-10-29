@@ -19,13 +19,13 @@ Future<Pos> whereIsKing(Board b, Color who) async {
   return null;
 }
 
-Future<Bool> isThereAThreat(
+Future<bool> isThereAThreat(
     Board b, Pos where, Pos from, PlayersAlive pa, EnPassantStore ep,
     [Square alrtjf = null]) {
   Square tjf = alrtjf ?? b.gPos(from);
   Iterable<Vector> vecs = tjf.fig.vecs_ns(from, where);
   Iterable<Future<bool>> futbools = vecs.map((Vector vec) =>
-      possib(opos, b, vec, new MoatsState.noBridges(), ep, Castling.off));
+      possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
   Stream<bool> strofbools = new Stream<bool>.fromFutures(futbools);
   return (strofbools.firstWhere((bool elem) => elem, defaultValue: () => false))
       as Future<bool>; //TODO: avoid [as]
