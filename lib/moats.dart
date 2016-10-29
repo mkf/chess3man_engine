@@ -3,18 +3,12 @@ library chess3man.engine.moats;
 import "colors.dart";
 
 class MoatsState {
-  bool bw;
-  bool wg;
-  bool gb;
-  MoatsState(this.bw, this.wg, this.gb);
-  MoatsState.allBridged()
-      : this.bw = true,
-        this.wg = true,
-        this.gb = true;
-  MoatsState.noBridges()
-      : this.bw = false,
-        this.wg = false,
-        this.gb = false;
+  final bool bw;
+  final bool wg;
+  final bool gb;
+  const MoatsState(this.bw, this.wg, this.gb);
+  static const MoatsState allBridged = const MoatsState(true, true, true);
+  static const MoatsState noBridges = const MoatsState(false, false, false);
   bool isBridgedBetween(Color a, Color b) {
     Color bef = a.next == b ? a : b.next == a ? b : null;
     assert(bef != null);
@@ -27,12 +21,28 @@ class MoatsState {
         return bw;
       case Color.white:
         return wg;
-      case Color.white:
+      case Color.gray:
         return gb;
       default:
         return null;
     }
   }
+
+  MoatsState changeBetweenThisAndNext(Color col, bool towhat) {
+    switch (col) {
+      case Color.black:
+        return new MoatsState(towhat, wg, gb);
+      case Color.white:
+        return new MoatsState(bw, towhat, gb);
+      case Color.gray:
+        return new MoatsState(bw, wg, towhat);
+      default:
+        return null;
+    }
+  }
+
+  MoatsState bridgeBetweenThisAndNext(Color col) =>
+      changeBetweenThisAndNext(col, true);
 
   bool isBridgedBetweenThisAndPrevious(Color col) {
     switch (col) {
@@ -46,6 +56,22 @@ class MoatsState {
         return null;
     }
   }
+
+  MoatsState changeBetweenThisAndPrevious(Color col, bool towhat) {
+    switch (col) {
+      case Color.black:
+        return new MoatsState(bw, wg, towhat);
+      case Color.white:
+        return new MoatsState(towhat, wg, gb);
+      case Color.gray:
+        return new MoatsState(bw, towhat, gb);
+      default:
+        return null;
+    }
+  }
+
+  MoatsState bridgeBetweenThisAndPrevious(Color col) =>
+      changeBetweenThisAndPrevious(col, true);
 
   _ShortLong areBridgedBetweenThisAndPrevious(Color col) => new _ShortLong(
       isBridgedBetweenThisAndPrevious(col),

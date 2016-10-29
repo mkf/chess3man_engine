@@ -38,7 +38,7 @@ class PlayersAlive {
 }
 
 class State {
-  final Board board;
+  final Board board; //mutable
   final MoatsState moatsstate;
   final Color movesnext;
   final Castling castling;
