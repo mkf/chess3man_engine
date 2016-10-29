@@ -300,6 +300,7 @@ class KingsideCastlingVector extends CastlingVector {
 abstract class PawnVector implements JumpVector {
   ///Returns needed `PawnCenter` value
   bool get reqpc;
+  bool reqProm(int rank);
 }
 
 class PawnLongJumpVector implements PawnVector {
@@ -308,6 +309,7 @@ class PawnLongJumpVector implements PawnVector {
   int get file => 0;
   bool get reqpc => false;
   bool toBool() => true;
+  bool reqProm(_) => false;
   Pos addTo(Pos from) => from.rank == 1 ? new Pos(3, from.file) : null;
   Pos enpfield(Pos from) => from.rank == 1 ? new Pos(2, from.file) : null;
   static const PawnLongJumpVector c = const PawnLongJumpVector();
@@ -329,6 +331,7 @@ class PawnWalkVector extends RankVector implements PawnVector {
   int get file => 0;
   bool get reqpc => !this.direc;
   bool toBool() => true;
+  bool reqProm(int rank) => rank+t==0;
   bool thruCenter(int fromrank) => direc && fromrank == 5;
   Iterable<Color> moats(_) sync* {}
   Pos addTo(Pos from) => thruCenter(from.rank)
@@ -341,6 +344,7 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
   final bool inward;
   const PawnCapVector(this.inward, bool plusfile) : super.unit(plusfile);
   bool get reqpc => !this.inward;
+  bool reqProm(int rank) => (!inward)&&(rank==1);
   bool thruCenter(int fromrank) => inward && fromrank == 5;
   Iterable<Color> moats(
       _) sync* {} //I guess PC pawns cannot capture thru bridged

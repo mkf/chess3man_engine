@@ -2,9 +2,16 @@ library chess3man.engine.prom;
 
 import "board.dart";
 
-class PawnPromVector extends PawnWalkVector {
-  const PawnPromVector(FigType toft)
-      : this.toft = toft,
-        super(false);
+abstract class PawnPromVector extends PawnVector {
+  FigType get toft;
+}
+
+class PawnPromWalkVector extends PawnWalkVector implements PawnPromVector {
   final FigType toft;
+  const PawnPromWalkVector(this.toft) : super(false);
+}
+
+class PawnPromCapVector extends PawnCapVector implements PawnPromVector {
+  final FigType toft;
+  const PawnPromCapVector(bool plusfile, this.toft) : super(false, plusfile);
 }
