@@ -1,5 +1,5 @@
 name: chess3man_engine
-version: 0.0.4
+version: 0.0.5
 description: 3manchess engine library
 authors:
 - "Michał Krzysztof Feiler <archiet@platinum.edu.pl>"
@@ -9,4 +9,4 @@ environment:
 dependencies:
   charcode: ^1.1.0
   built_collection: ^1.0.4
-  unittest: any
+  test: ^0.12.9
