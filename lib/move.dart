@@ -113,10 +113,23 @@ class Move {
         before.alivecolors,
         before.fullmovenumber + 1);
     Pos heyitscheck = await amIinCheck(next, what.color);
-    if(heyitscheck!=null) throw new WeInCheckError(this, heyitscheck, next);
+    if (heyitscheck != null) throw new WeInCheckError(this, heyitscheck, next);
+    if (vec.moats(from).isNotEmpty) {
+      Function ctfvitat = (Color c) async {
+        return (isThereAThreat(b, await whereIsKing(b, c), to, next.alivecolors,
+                enPassantStore)
+            .then(CheckInitiatedThruMoatError._chk(this, c, next)));
+      };
+      Future<Future> ctfvprev = ctfvitat(what.color.previous);
+      Future<Future> ctfvnext = ctfvitat(what.color.next);
+      await await ctfvprev;
+      await await ctfvnext;
+    }
     return next;
   }
 }
+
+//typedef Future<void> ColorToFutureVoid(Color c);
 
 abstract class IllegalMoveError extends StateError {
   final Move m;
@@ -160,5 +173,21 @@ class WeInCheckError extends IllegalMoveError {
   final State next;
   WeInCheckError(Move m, Pos from, this.next)
       : this.from = from,
-        super(m, "We would be in check! (checking " + from.toString()+")");
+        super(m, "We would be in check! (checking " + from.toString() + ")");
+}
+
+typedef void _checkToCheckInitiatedThruMoatError(bool b);
+
+class CheckInitiatedThruMoatError extends IllegalMoveError {
+  final Color to;
+  final State next;
+  CheckInitiatedThruMoatError(Move m, Color to, this.next)
+      : this.to = to,
+        super(m, "Our piece initiated a check thru moat to " + to.toString());
+  static _checkToCheckInitiatedThruMoatError _chk(
+      Move m, Color to, State next) {
+    return (bool b) {
+      if (b) throw new CheckInitiatedThruMoatError(m, to, next);
+    };
+  }
 }
