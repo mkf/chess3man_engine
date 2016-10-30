@@ -11,6 +11,8 @@ class PlayersAlive {
   final bool g;
   final bool b;
   const PlayersAlive(this.w, this.g, this.b);
+  static const PlayersAlive all = const PlayersAlive(true, true, true);
+  static const PlayersAlive noone = const PlayersAlive(false, false, false);
   PlayersAlive change(Color c, bool what) {
     switch (c) {
       case Color.white:
@@ -59,6 +61,9 @@ class State {
   State.clone(State from)
       : this(new Board.clone(from.b), from.ms, from.mn, from.cas, from.ep,
             from.hmc, from.ac, from.fmn);
+  State.newGame()
+      : this(new Board.newGame(), MoatsState.noBridges, Color.white,
+            Castling.all, EnPassantStore.empty, 0, PlayersAlive.all, 1);
   Board get b => board;
   MoatsState get ms => moatsstate;
   Color get mn => movesnext;
