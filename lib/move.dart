@@ -48,7 +48,7 @@ class Move {
     return true;
   }
 
-  Future<State> after() async {
+  Future<State> after({bool evaluateDeath: true}) async {
     assert(await possible());
     ColorCastling colorCastling = before.castling.give(who);
     if (what.type == FigType.king) colorCastling = ColorCastling.off;
@@ -112,6 +112,8 @@ class Move {
         halfMoveClock,
         before.alivecolors,
         before.fullmovenumber + 1);
+    Future<PlayersAlive> evdDeath;
+    if(evaluateDeath) evdDeath = evalDeath(next);
     Pos heyitscheck = await amIinCheck(next, what.color);
     if (heyitscheck != null) throw new WeInCheckError(this, heyitscheck, next);
     if (vec.moats(from).isNotEmpty) {
@@ -125,7 +127,7 @@ class Move {
       await await ctfvprev;
       await await ctfvnext;
     }
-    return next;
+    return evaluateDeath?next.setAliveColors(await evdDeath):next;
   }
 }
 
