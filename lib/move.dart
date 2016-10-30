@@ -176,7 +176,7 @@ class WeInCheckError extends IllegalMoveError {
         super(m, "We would be in check! (checking " + from.toString() + ")");
 }
 
-typedef void _checkToCheckInitiatedThruMoatError(bool b);
+typedef void _CheckToCheckInitiatedThruMoatError(bool b);
 
 class CheckInitiatedThruMoatError extends IllegalMoveError {
   final Color to;
@@ -184,7 +184,7 @@ class CheckInitiatedThruMoatError extends IllegalMoveError {
   CheckInitiatedThruMoatError(Move m, Color to, this.next)
       : this.to = to,
         super(m, "Our piece initiated a check thru moat to " + to.toString());
-  static _checkToCheckInitiatedThruMoatError _chk(
+  static _CheckToCheckInitiatedThruMoatError _chk(
       Move m, Color to, State next) {
     return (bool b) {
       if (b) throw new CheckInitiatedThruMoatError(m, to, next);

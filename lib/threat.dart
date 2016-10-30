@@ -9,6 +9,8 @@ import "epstore.dart";
 import 'possib.dart';
 import 'moats.dart';
 import 'castling.dart';
+import 'move.dart';
+import 'prom.dart';
 
 Future<Pos> whereIsKing(Board b, Color who) async {
   for (final Pos opos in AMFT.keys) {
@@ -93,4 +95,51 @@ Stream<FigType> weAreThreateningTypes(
 Stream<FigType> weAreThreatened(
     Board b, Color who, PlayersAlive pa, EnPassantStore ep) async* {
   yield* weAreThreateningTypes(b, who, pa, ep, noWeAreThreatened: true);
+}
+
+Future<bool> canIMoveWOCheck(State os, Color who) async {
+  State s = new State(
+      new Board.clone(os.board),
+      os.moatsstate,
+      who,
+      os.castling,
+      os.enpassant,
+      os.halfmoveclock,
+      os.alivecolors,
+      os.fullmovenumber);
+  for (final Pos oac
+      in AMFT.keys.where((Pos pos) => (s.board.gPos(pos).color == who)))
+    for (final Pos oacp in AMFT[oac])
+      for (final Vector vec in s.board.gPos(oac).fig.vecs_ns(oac, oacp)) {
+        Move m = new Move(
+            oac,
+            vec is PawnVector && vec.reqProm(oac.rank)
+                ? PawnPromVector.fromPV(vec, FigType.queen)
+                : vec,
+            s);
+        try {
+          if (m.after() != null) return true;
+        } on IllegalMoveError catch (_) {}
+      }
+  return false;
+}
+
+Future<PlayersAlive> evalDeath(State s) async {
+  bool testCheckmate = true;
+  Color player = s.movesnext;
+  PlayersAlive pa = s.alivecolors;
+  for (int indit=0;indit<3;indit++) {
+    if (pa.give(player)) {
+      if (testCheckmate &&
+          (whereIsKing(s.board, player) == null ||
+              !(await canIMoveWOCheck(s, player))))
+        pa = pa.die(player);
+      else {
+        if (whereIsKing(s.board, player) == null) pa = pa.die(player);
+        testCheckmate = false;
+      }
+    }
+    player = player.next;
+  }
+  return pa;
 }

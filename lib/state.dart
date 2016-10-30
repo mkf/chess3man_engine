@@ -57,15 +57,30 @@ class State {
       this.alivecolors,
       this.fullmovenumber);
   State.clone(State from)
-      : this(
-            new Board.clone(from.board),
-            from.moatsstate,
-            from.movesnext,
-            from.castling,
-            from.enpassant,
-            from.halfmoveclock,
-            from.alivecolors,
-            from.fullmovenumber);
+      : this(new Board.clone(from.b), from.ms, from.mn, from.cas, from.ep,
+            from.hmc, from.ac, from.fmn);
+  Board get b => board;
+  MoatsState get ms => moatsstate;
+  Color get mn => movesnext;
+  Castling get cas => castling;
+  EnPassantStore get ep => enpassant;
+  int get hmc => halfmoveclock;
+  int get fmn => fullmovenumber;
+  PlayersAlive get ac => alivecolors;
+  State setBoard(Board b) => new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setMoatsState(MoatsState ms) =>
+      new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setMovesNext(Color mn) => new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setCastling(Castling cas) =>
+      new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setEnPassant(EnPassantStore ep) =>
+      new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setHalfMoveClock(int hmc) =>
+      new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setAliveColors(PlayersAlive ac) =>
+      new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setFullMoveNumber(int fmn) =>
+      new State(b, ms, mn, cas, ep, hmc, ac, fmn);
   String toString() =>
       board.toString() +
       moatsstate.toString() +
