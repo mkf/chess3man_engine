@@ -11,6 +11,7 @@ import 'epstore.dart';
 import 'prom.dart';
 import 'moats.dart';
 import 'afterboard.dart';
+import 'threat.dart';
 
 class Move {
   final Pos from;
@@ -100,7 +101,7 @@ class Move {
           moatsState = moatsState.bridgeBothSidesOfColor(curmoat);
       }
     }
-    return new State(
+    State next = new State(
         b,
         moatsState,
         before.alivecolors.give(before.movesnext.next)
@@ -111,6 +112,9 @@ class Move {
         halfMoveClock,
         before.alivecolors,
         before.fullmovenumber + 1);
+    Pos heyitscheck = await amIinCheck(next, what.color);
+    if(heyitscheck!=null) throw new WeInCheckError(this, heyitscheck, next);
+    return next;
   }
 }
 
@@ -149,4 +153,12 @@ class IllegalPromotionError extends IllegalMoveError {
 
 class NeedsToBePromotedError extends IllegalMoveError {
   NeedsToBePromotedError(Move m) : super(m, "Promotion is obligatory!");
+}
+
+class WeInCheckError extends IllegalMoveError {
+  final Pos from;
+  final State next;
+  WeInCheckError(Move m, Pos from, this.next)
+      : this.from = from,
+        super(m, "We would be in check! (checking " + from.toString()+")");
 }

@@ -50,6 +50,9 @@ Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) async {
   return await threatChecking(b, wking, pa, EnPassantStore.empty);
 }
 
+Future<Pos> amIinCheck(State s, Color who) =>
+    checkChecking(s.board, who, s.alivecolors);
+
 class FriendOrNot {
   final bool friend;
   final Pos pos;
