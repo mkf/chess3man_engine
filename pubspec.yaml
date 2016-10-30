@@ -9,3 +9,4 @@ environment:
 dependencies:
   charcode: ^1.1.0
   built_collection: ^1.0.4
+  unittest: any
