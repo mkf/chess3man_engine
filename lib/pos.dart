@@ -23,7 +23,7 @@ class Pos {
       : this.rank = 0,
         this.file = 0;
   Pos.colorSegment(Color color, this.rank, int colorfile)
-      : this.file = color.board << 3 + colorfile;
+      : this.file = (color.board << 3) + colorfile;
   @override
   String toString() => "[$rank,$file]";
   Color get colorSegm => new Color.fromSegm(file ~/ 8);
