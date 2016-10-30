@@ -18,7 +18,7 @@ Future<bool> possib(Pos from, Board b, Vector v, MoatsState m,
     EnPassantStore ep, Castling c) async {
   Square fromsq = b.gPos(from); //Square we are from
   Color ourcolor = fromsq.color; //Color of from
-  Pos to = v.addTo(from); //our destination Pos
+  Pos to = v?.addTo(from); //our destination Pos
   Square tosq = b.gPos(to); //our destination Square
   Color tocol = fromsq.empty ? null : fromsq.color; //Color of dest Fig or null
 

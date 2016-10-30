@@ -222,8 +222,8 @@ class Board {
     b[pos.rank][pos.file] = new Square.zero();
   }
 
-  Square gPos(Pos pos) => b[pos.rank][pos.file];
-  bool nePos(Pos pos) => b[pos.rank][pos.file].notEmpty;
+  Square gPos(Pos pos) => pos==null?null:b[pos.rank][pos.file];
+  bool nePos(Pos pos) => pos==null?null:b[pos.rank][pos.file].notEmpty;
 
   void mFig(Pos from, Pos to) {
     pFig(to, gPos(from).fig);
