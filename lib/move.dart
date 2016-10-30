@@ -12,6 +12,9 @@ import 'prom.dart';
 import 'moats.dart';
 import 'afterboard.dart';
 import 'threat.dart';
+export 'state.dart';
+export 'pos.dart';
+export 'colors.dart';
 
 class Move {
   final Pos from;
