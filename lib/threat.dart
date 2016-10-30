@@ -119,7 +119,7 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
             s);
         try {
           if (m.after() != null) return true;
-        } on IllegalMoveError catch (_) {}
+        } on IllegalMoveException catch (_) {}
       }
   return false;
 }

@@ -26,23 +26,23 @@ class Move {
   Fig get alreadyThere => tosq.fig;
   Future<bool> possible() async {
     //TODO: Pos.correct?
-    if (fromsq.empty) throw new NothingHereAlreadyError(this);
+    if (fromsq.empty) throw new NothingHereAlreadyException(this);
     if (what.color != before.movesnext)
-      throw new ThatColorDoesNotMoveNowError(this, what.color);
+      throw new ThatColorDoesNotMoveNowException(this, what.color);
     if (!(await possib(
         from,
         before.board,
         vec,
         before.moatsstate,
         before.enpassant,
-        before.castling))) throw new ImpossibleMoveError(this);
+        before.castling))) throw new ImpossibleMoveException(this);
     if (vec is PawnPromVector) {
       FigType toft = (vec as PawnPromVector).toft;
       switch (toft) {
         case FigType.zeroFigType:
         case FigType.king:
         case FigType.pawn:
-          throw new IllegalPromotionError(this, toft);
+          throw new IllegalPromotionException(this, toft);
       }
     }
     return true;
@@ -79,7 +79,7 @@ class Move {
     if ((vec is PawnVector) &&
         (!(vec is PawnPromVector)) &&
         (vec as PawnVector).reqProm(from.rank))
-      throw new NeedsToBePromotedError(this);
+      throw new NeedsToBePromotedException(this);
     Board b = await afterBoard(before.board, vec, from, before.enpassant);
     MoatsState moatsState = before.moatsstate;
     if ((!(vec is CastlingVector)) &&
@@ -115,12 +115,12 @@ class Move {
     Future<PlayersAlive> evdDeath;
     if(evaluateDeath) evdDeath = evalDeath(next);
     Pos heyitscheck = await amIinCheck(next, what.color);
-    if (heyitscheck != null) throw new WeInCheckError(this, heyitscheck, next);
+    if (heyitscheck != null) throw new WeInCheckException(this, heyitscheck, next);
     if (vec.moats(from).isNotEmpty) {
       Function ctfvitat = (Color c) async {
         return (isThereAThreat(b, await whereIsKing(b, c), to, next.alivecolors,
                 enPassantStore)
-            .then(CheckInitiatedThruMoatError._chk(this, c, next)));
+            .then(CheckInitiatedThruMoatException._chk(this, c, next)));
       };
       Future<Future> ctfvprev = ctfvitat(what.color.previous);
       Future<Future> ctfvnext = ctfvitat(what.color.next);
@@ -133,19 +133,21 @@ class Move {
 
 //typedef Future<void> ColorToFutureVoid(Color c);
 
-abstract class IllegalMoveError extends StateError {
+class IllegalMoveException implements Exception {
   final Move m;
-  IllegalMoveError(this.m, String msg) : super(msg);
+  final String msg;
+  IllegalMoveException(this.m, this.msg);
+  String toString() => msg ?? "IllegalMoveException";
 }
 
-class NothingHereAlreadyError extends IllegalMoveError {
-  NothingHereAlreadyError(Move m)
+class NothingHereAlreadyException extends IllegalMoveException {
+  NothingHereAlreadyException(Move m)
       : super(m, "How do you move that which does not exist?");
 }
 
-class ThatColorDoesNotMoveNowError extends IllegalMoveError {
+class ThatColorDoesNotMoveNowException extends IllegalMoveException {
   final Color c;
-  ThatColorDoesNotMoveNowError(Move m, this.c)
+  ThatColorDoesNotMoveNowException(Move m, this.c)
       : super(
             m,
             "That is not " +
@@ -155,41 +157,41 @@ class ThatColorDoesNotMoveNowError extends IllegalMoveError {
                 "'s");
 }
 
-class ImpossibleMoveError extends IllegalMoveError {
-  ImpossibleMoveError(Move m) : super(m, "Illegal/impossible move");
+class ImpossibleMoveException extends IllegalMoveException {
+  ImpossibleMoveException(Move m) : super(m, "Illegal/impossible move");
 }
 
-class IllegalPromotionError extends IllegalMoveError {
+class IllegalPromotionException extends IllegalMoveException {
   final FigType to;
-  IllegalPromotionError(Move m, FigType to)
+  IllegalPromotionException(Move m, FigType to)
       : this.to = to,
         super(m, "Illegal promotion to " + to.toString() + "!");
 }
 
-class NeedsToBePromotedError extends IllegalMoveError {
-  NeedsToBePromotedError(Move m) : super(m, "Promotion is obligatory!");
+class NeedsToBePromotedException extends IllegalMoveException {
+  NeedsToBePromotedException(Move m) : super(m, "Promotion is obligatory!");
 }
 
-class WeInCheckError extends IllegalMoveError {
+class WeInCheckException extends IllegalMoveException {
   final Pos from;
   final State next;
-  WeInCheckError(Move m, Pos from, this.next)
+  WeInCheckException(Move m, Pos from, this.next)
       : this.from = from,
         super(m, "We would be in check! (checking " + from.toString() + ")");
 }
 
-typedef void _CheckToCheckInitiatedThruMoatError(bool b);
+typedef void _CheckToCheckInitiatedThruMoatException(bool b);
 
-class CheckInitiatedThruMoatError extends IllegalMoveError {
+class CheckInitiatedThruMoatException extends IllegalMoveException {
   final Color to;
   final State next;
-  CheckInitiatedThruMoatError(Move m, Color to, this.next)
+  CheckInitiatedThruMoatException(Move m, Color to, this.next)
       : this.to = to,
         super(m, "Our piece initiated a check thru moat to " + to.toString());
-  static _CheckToCheckInitiatedThruMoatError _chk(
+  static _CheckToCheckInitiatedThruMoatException _chk(
       Move m, Color to, State next) {
     return (bool b) {
-      if (b) throw new CheckInitiatedThruMoatError(m, to, next);
+      if (b) throw new CheckInitiatedThruMoatException(m, to, next);
     };
   }
 }
