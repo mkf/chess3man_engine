@@ -168,7 +168,7 @@ class ImpossibleMoveException extends IllegalMoveException {
   final Impossibility impos;
   ImpossibleMoveException(Move m, Impossibility impos)
       : this.impos = impos,
-        super(m, "Illegal/impossible move " + impos.toString());
+        super(m, "Illegal/impossible move " + impos.msg);
 }
 
 class IllegalPromotionException extends IllegalMoveException {
