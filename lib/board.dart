@@ -184,7 +184,7 @@ class Square {
   int get sevenbit => notEmpty ? fig.sevenbit : 0;
   int toJson() => sevenbit;
   bool get empty => !this.notEmpty;
-  Color get color => this.fig.color;
+  Color get color => notEmpty?fig.color:null;
   FigType get what => this.fig.type;
   static const String _emptyourstr = "__";
   @override
