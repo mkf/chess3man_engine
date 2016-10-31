@@ -9,7 +9,10 @@ main() {
     Pos from = new Pos(1, 0);
     Pos to = new Pos(3, 0);
     Iterable<Vector> vecs = newState.b.gPos(from).fig.vecs_ns(from, to);
-    Move first = new Move(from, vecs.first, newState);
+    expect(vecs, isNotEmpty);
+    Vector vec = vecs.first;
+    expect(vec, isNotNull);
+    Move first = new Move(from, vec, newState);
     expect(first.after(),isNotNull);
   });
 }
