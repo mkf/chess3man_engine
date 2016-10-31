@@ -78,7 +78,8 @@ class Fig {
   int toRune() => Piece.runeMap[type][color];
   static Vector vec(Pos from, Pos to) => null;
   static Iterable<Vector> vecs(Pos from, Pos to) sync* {
-    yield vec(from, to);
+    Vector v = vec(from, to);
+    if(v!=null) yield v;
   }
 
   ///Static member vecs couldn't be accessed using instance access
