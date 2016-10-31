@@ -7,6 +7,7 @@ import 'dart:async';
 void main() {
   test("simple gen no panic", () async {
     State newState = new State.newGame();
+    print(newState.b.toJson());
     Pos from = new Pos(1, 0);
     Pos to = new Pos(3, 0);
     Square fsq = newState.b.gPos(from);

@@ -23,7 +23,10 @@ class Move {
   const Move(this.from, this.vec, this.before);
   Pos get to => vec.addTo(from);
   Square get fromsq => before.board.gPos(from);
-  Fig get what => fromsq.fig;
+  Fig get what {
+    if(fromsq.empty) throw new NothingHereAlreadyException(this);
+    return fromsq.fig;
+  }
   Color get who => what.color;
   Square get tosq => before.board.gPos(to);
   Fig get alreadyThere => tosq.fig;
@@ -53,7 +56,7 @@ class Move {
   }
 
   Future<State> after({bool evaluateDeath: true}) async {
-    assert(await possible());
+    await possible();
     ColorCastling colorCastling = before.castling.give(who);
     if (what.type == FigType.king) colorCastling = ColorCastling.off;
     if (what.type == FigType.rook && from.rank == 0) {
