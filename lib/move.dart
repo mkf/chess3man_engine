@@ -147,7 +147,7 @@ class IllegalMoveException implements Exception {
   IllegalMoveException(this.m, this.msg);
   String toString() =>
       (msg ?? "IllegalMoveException") +
-      " ${m.from.toString()} ${m.vec.toString()}";
+      " from${m.from.toString()} vec:${m.vec.toString()}";
 }
 
 class NothingHereAlreadyException extends IllegalMoveException {
