@@ -16,12 +16,12 @@ Future<bool> checkempties(Pos from, Board b, Vector v) async {
 
 Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
     EnPassantStore ep, Castling c) async {
-  Square fromsq = b.gPos(from); //Square we are from
+  Fig fromsq = b.gPos(from); //Square we are from
   Color ourcolor = fromsq.color; //Color of from
   assert(ourcolor!=null);
   Pos to = v?.addTo(from); //our destination Pos
-  Square tosq = b.gPos(to); //our destination Square
-  Color tocol = fromsq.empty ? null : fromsq.color; //Color of dest Fig or null
+  Fig tosq = b.gPos(to); //our destination Square
+  Color tocol = fromsq?.color; //Color of dest Fig or null
 
   //As stated in Clif's email from Mon, 2 Nov 2015 11:32:54 -0500
   //Message-Id: <150c90b53b0-12f7-145cf@webprd-m97.mail.aol.com>
@@ -34,7 +34,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
 
   //En passant capturing :
   if (v is PawnCapVector &&
-      tosq.empty && //!ep.match(to))
+      (tosq==null) && //!ep.match(to))
       !(ep.last.equal(to) &&
           b.gPos(new Pos(3, ep.last.file)).color == ourcolor.previous) &&
       !(ep.prev.equal(to) &&
@@ -43,7 +43,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
   }
 
   //Cannot capture our own piece
-  if (tosq.notEmpty && tocol == ourcolor)
+  if (tosq==null && tocol == ourcolor)
     return new CannotCaptureSameColorImposs(ourcolor, to, tosq);
 
   //If there are pieces in our way return false
@@ -60,7 +60,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
     return new ForbiddenCastlingImposs(colorCastling, v);
 
   //If we are capturing thru moats
-  if (moats.length > 0 && tosq.notEmpty)
+  if (moats.length > 0 && tosq==null)
     return new CapturingThruMoatsImposs(moats, to, tosq);
 
   //If some moat we are passing is not bridged
@@ -95,7 +95,7 @@ class CannotEnPassantImposs implements Impossibility {
 
 class CannotCaptureSameColorImposs implements Impossibility {
   final Pos to;
-  final Square tosq;
+  final Fig tosq;
   final Color ourcolor;
   const CannotCaptureSameColorImposs(this.ourcolor, this.to, this.tosq);
   bool get canI => false;
@@ -122,7 +122,7 @@ class ForbiddenCastlingImposs implements Impossibility {
 class CapturingThruMoatsImposs implements Impossibility {
   final Pos to;
   final Iterable<Color> moats;
-  final Square tosq;
+  final Fig tosq;
   const CapturingThruMoatsImposs(this.moats, this.to, this.tosq);
   bool get canI => moats.isEmpty;
   String get msg =>

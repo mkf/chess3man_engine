@@ -91,8 +91,8 @@ class Fig {
   PawnCenter get pawnCenter => null;
   @override
   String toString() => new String.fromCharCodes(<int>[$space, toRune()]);
-  static Fig fromSevenbit(int sb) => sub(new FigType(sb & 7),
-      new Color((sb >> 3) & 7), new PawnCenter((sb >> 6) > 0));
+  static Fig fromSevenbit(int sb) => sb>0?sub(new FigType(sb & 7),
+      new Color((sb >> 3) & 7), new PawnCenter((sb >> 6) > 0)):null;
   static Fig sub(FigType type, Color color,
       [PawnCenter pc = PawnCenter.didnt]) {
     switch (type) {
@@ -171,40 +171,26 @@ class Pawn extends Fig {
   static Vector vector(Pos from, Pos to) => from.pawnVectorTo(to);
 }
 
+/*
 class Square {
-  final bool notEmpty;
-  final Fig fig;
-  const Square(this.fig) : notEmpty = true;
-  const Square.zero()
-      : notEmpty = false,
-        //fig = const Fig.zero();
-        fig = null;
-  Square.fromSevenbit(int sb)
-      : this.notEmpty = sb != 0,
-        this.fig = Fig.fromSevenbit(sb);
-  int get sevenbit => notEmpty ? fig.sevenbit : 0;
-  int toJson() => sevenbit;
-  bool get empty => !this.notEmpty;
-  Color get color => notEmpty?fig.color:null;
-  FigType get what => this.fig.type;
   static const String _emptyourstr = "__";
   @override
   String toString() => notEmpty ? fig.toString() : _emptyourstr;
 }
+*/
 
 class Board {
-  List<List<Square>> b = new List<List<Square>>.generate(
-      6, (_) => new List<Square>.generate(24, (_) => const Square.zero()),
-      growable: false);
+  List<List<Fig>> b = new List<List<Fig>>.generate(
+      6, (_) => new List<Fig>(24));
   Board();
   Board.withB(this.b);
-  Board.fromB(List<List<Square>> b) : this.b = new List<List<Square>>.from(b);
+  Board.fromB(List<List<Fig>> b) : this.b = new List<List<Fig>>.from(b);
   Board.clone(Board orig) : this.fromB(orig.b);
   Board.fromInts(List<List<int>> li)
-      : this.withB(new List<List<Square>>.generate(
+      : this.withB(new List<List<Fig>>.generate(
             6,
-            (int ind) => new List<Square>.generate(
-                24, (int indf) => new Square.fromSevenbit(li[ind][indf]))));
+            (int ind) => new List<Fig>.generate(
+                24, (int indf) => li[ind][indf]>0?Fig.fromSevenbit(li[ind][indf]):null)));
   Board.newGame() {
     for (final Color col in Color.colors) {
       for (int i = 0; i < 8; i++) {
@@ -215,20 +201,20 @@ class Board {
       }
     }
   }
-  List<List<Square>> toJson() => b;
+  List<List<Fig>> toJson() => b;
   void pFig(Pos pos, Fig fig) {
-    b[pos.rank][pos.file] = new Square(fig);
+    b[pos.rank][pos.file] = fig;
   }
 
   void empt(Pos pos) {
-    b[pos.rank][pos.file] = new Square.zero();
+    b[pos.rank][pos.file] = null;
   }
 
-  Square gPos(Pos pos) => pos==null?null:b[pos.rank][pos.file];
-  bool nePos(Pos pos) => pos==null?null:b[pos.rank][pos.file].notEmpty;
+  Fig gPos(Pos pos) => b[pos.rank][pos.file];
+  bool nePos(Pos pos) => b[pos.rank][pos.file]!=null;
 
   void mFig(Pos from, Pos to) {
-    pFig(to, gPos(from).fig);
+    pFig(to, gPos(from));
     empt(from);
   }
 }

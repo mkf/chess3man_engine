@@ -22,17 +22,17 @@ class Move {
   final State before;
   const Move(this.from, this.vec, this.before);
   Pos get to => vec.addTo(from);
-  Square get fromsq => before.board.gPos(from);
+  Fig get fromsq => before.board.gPos(from);
   Fig get what {
-    if(fromsq.empty) throw new NothingHereAlreadyException(this);
-    return fromsq.fig;
+    if(fromsq==null) throw new NothingHereAlreadyException(this);
+    return fromsq;
   }
   Color get who => what.color;
-  Square get tosq => before.board.gPos(to);
-  Fig get alreadyThere => tosq.fig;
+  Fig get tosq => before.board.gPos(to);
+  Fig get alreadyThere => tosq;
   Future<bool> possible() async {
     //TODO: Pos.correct?
-    if (fromsq.empty) throw new NothingHereAlreadyException(this);
+    if (fromsq==null) throw new NothingHereAlreadyException(this);
     if (what.color != before.movesnext)
       throw new ThatColorDoesNotMoveNowException(this, what.color);
     Impossibility impos = await possib(
@@ -74,7 +74,7 @@ class Move {
       } else if (to.file % 8 == CastlingVector.kfm)
         castling.change(to.colorSegm, ColorCastling.off);
     }
-    int halfMoveClock = (what.type == FigType.pawn || tosq.notEmpty)
+    int halfMoveClock = (what.type == FigType.pawn || (tosq!=null))
         ? 0
         : before.halfmoveclock + 1;
     EnPassantStore enPassantStore = before.enpassant;

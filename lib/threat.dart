@@ -14,8 +14,8 @@ import 'prom.dart';
 
 Future<Pos> whereIsKing(Board b, Color who) async {
   for (final Pos opos in AMFT.keys) {
-    final Square sq = b.gPos(opos);
-    if (sq.notEmpty && sq.color == who && sq.fig.type == FigType.king)
+    final Fig sq = b.gPos(opos);
+    if (sq!=null && sq.color == who && sq.type == FigType.king)
       return opos;
   }
   return null;
@@ -23,9 +23,9 @@ Future<Pos> whereIsKing(Board b, Color who) async {
 
 Future<bool> isThereAThreat(
     Board b, Pos where, Pos from, PlayersAlive pa, EnPassantStore ep,
-    [Square alrtjf = null]) {
-  Square tjf = alrtjf ?? b.gPos(from);
-  Iterable<Vector> vecs = tjf.fig.vecs(from, where);
+    [Fig alrtjf = null]) {
+  Fig tjf = alrtjf ?? b.gPos(from);
+  Iterable<Vector> vecs = tjf.vecs(from, where);
   Iterable<Future<Impossibility>> futbools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
   Stream<Impossibility> strofbools = new Stream<Impossibility>.fromFutures(futbools);
@@ -37,8 +37,8 @@ Future<Pos> threatChecking(
     Board b, Pos where, PlayersAlive pa, EnPassantStore ep) async {
   Color who = b.gPos(where).color;
   for (final Pos opos in AMFT.keys) {
-    Square tjf = b.gPos(opos);
-    if (tjf.notEmpty && tjf.color != who && pa.give(tjf.color)) {
+    Fig tjf = b.gPos(opos);
+    if (tjf!=null && tjf.color != who && pa.give(tjf.color)) {
       if (await isThereAThreat(b, where, opos, pa, ep, tjf)) return opos;
     }
   }
@@ -64,9 +64,9 @@ class FriendOrNot {
 Iterable<FriendOrNot> friendsAndNot(Board b, Color who, PlayersAlive pa) sync* {
   if (pa.give(who))
     for (final Pos opos in AMFT.keys) {
-      final Square tjf = b.gPos(opos);
+      final Fig tjf = b.gPos(opos);
       final bool friend = (tjf.color == who ? true : null) ??
-          ((tjf.notEmpty && pa.give(tjf.color)) ? false : null);
+          ((tjf!=null && pa.give(tjf.color)) ? false : null);
       if (friend != null) yield new FriendOrNot(friend, opos);
     }
 }
@@ -87,7 +87,7 @@ Stream<FigType> weAreThreateningTypes(
   for (final Pos ich in oni)
     for (final Pos nasz in my)
       if (await isThereAThreat(b, ich, nasz, pa, ep)) {
-        yield b.gPos(ich).fig.type;
+        yield b.gPos(ich).type;
         break;
       }
 }
@@ -110,7 +110,7 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
   for (final Pos oac
       in AMFT.keys.where((Pos pos) => (s.board.gPos(pos).color == who)))
     for (final Pos oacp in AMFT[oac])
-      for (final Vector vec in s.board.gPos(oac).fig.vecs(oac, oacp)) {
+      for (final Vector vec in s.board.gPos(oac).vecs(oac, oacp)) {
         Move m = new Move(
             oac,
             vec is PawnVector && vec.reqProm(oac.rank)
