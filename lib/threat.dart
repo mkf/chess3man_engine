@@ -25,7 +25,7 @@ Future<bool> isThereAThreat(
     Board b, Pos where, Pos from, PlayersAlive pa, EnPassantStore ep,
     [Square alrtjf = null]) {
   Square tjf = alrtjf ?? b.gPos(from);
-  Iterable<Vector> vecs = tjf.fig.vecs_ns(from, where);
+  Iterable<Vector> vecs = tjf.fig.vecs(from, where);
   Iterable<Future<bool>> futbools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
   Stream<bool> strofbools = new Stream<bool>.fromFutures(futbools);
@@ -110,7 +110,7 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
   for (final Pos oac
       in AMFT.keys.where((Pos pos) => (s.board.gPos(pos).color == who)))
     for (final Pos oacp in AMFT[oac])
-      for (final Vector vec in s.board.gPos(oac).fig.vecs_ns(oac, oacp)) {
+      for (final Vector vec in s.board.gPos(oac).fig.vecs(oac, oacp)) {
         Move m = new Move(
             oac,
             vec is PawnVector && vec.reqProm(oac.rank)

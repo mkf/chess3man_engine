@@ -5,6 +5,7 @@ import 'castling.dart';
 import 'board.dart';
 import 'colors.dart';
 import 'epstore.dart';
+export 'board.dart';
 
 class PlayersAlive {
   final bool w;
