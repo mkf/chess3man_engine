@@ -36,7 +36,7 @@ class PlayersAlive {
       case Color.black:
         return b;
     }
-    return null;
+    throw new ArgumentError.value(c.index,"PlayersAlive Color c", "bad Color");
   }
 }
 

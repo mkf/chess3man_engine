@@ -39,7 +39,7 @@ class Move {
         before.moatsstate,
         before.enpassant,
         before.castling);
-    if(!impos.canI) throw new ImpossibleMoveException(this, impos);
+    if(impos!=null) throw new ImpossibleMoveException(this, impos);
     if (vec is PawnPromVector) {
       FigType toft = (vec as PawnPromVector).toft;
       switch (toft) {

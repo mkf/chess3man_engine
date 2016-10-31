@@ -177,7 +177,8 @@ class Square {
   const Square(this.fig) : notEmpty = true;
   const Square.zero()
       : notEmpty = false,
-        fig = const Fig.zero();
+        //fig = const Fig.zero();
+        fig = null;
   Square.fromSevenbit(int sb)
       : this.notEmpty = sb != 0,
         this.fig = Fig.fromSevenbit(sb);

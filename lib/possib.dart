@@ -43,7 +43,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
   }
 
   //Cannot capture our own piece
-  if (tocol == ourcolor)
+  if (tosq.notEmpty && tocol == ourcolor)
     return new CannotCaptureSameColorImposs(ourcolor, to, tosq);
 
   //If there are pieces in our way return false
