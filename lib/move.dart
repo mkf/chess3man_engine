@@ -32,13 +32,14 @@ class Move {
     if (fromsq.empty) throw new NothingHereAlreadyException(this);
     if (what.color != before.movesnext)
       throw new ThatColorDoesNotMoveNowException(this, what.color);
-    if (!(await possib(
+    Impossibility impos = await possib(
         from,
         before.board,
         vec,
         before.moatsstate,
         before.enpassant,
-        before.castling))) throw new ImpossibleMoveException(this);
+        before.castling);
+    if(!impos.canI) throw new ImpossibleMoveException(this, impos);
     if (vec is PawnPromVector) {
       FigType toft = (vec as PawnPromVector).toft;
       switch (toft) {
@@ -116,9 +117,10 @@ class Move {
         before.alivecolors,
         before.fullmovenumber + 1);
     Future<PlayersAlive> evdDeath;
-    if(evaluateDeath) evdDeath = evalDeath(next);
+    if (evaluateDeath) evdDeath = evalDeath(next);
     Pos heyitscheck = await amIinCheck(next, what.color);
-    if (heyitscheck != null) throw new WeInCheckException(this, heyitscheck, next);
+    if (heyitscheck != null)
+      throw new WeInCheckException(this, heyitscheck, next);
     if (vec.moats(from).isNotEmpty) {
       Function ctfvitat = (Color c) async {
         return (isThereAThreat(b, await whereIsKing(b, c), to, next.alivecolors,
@@ -130,7 +132,7 @@ class Move {
       await await ctfvprev;
       await await ctfvnext;
     }
-    return evaluateDeath?next.setAliveColors(await evdDeath):next;
+    return evaluateDeath ? next.setAliveColors(await evdDeath) : next;
   }
 }
 
@@ -140,7 +142,9 @@ class IllegalMoveException implements Exception {
   final Move m;
   final String msg;
   IllegalMoveException(this.m, this.msg);
-  String toString() => (msg ?? "IllegalMoveException")+" ${m.from.toString()} ${m.vec.toString()}";
+  String toString() =>
+      (msg ?? "IllegalMoveException") +
+      " ${m.from.toString()} ${m.vec.toString()}";
 }
 
 class NothingHereAlreadyException extends IllegalMoveException {
@@ -161,7 +165,10 @@ class ThatColorDoesNotMoveNowException extends IllegalMoveException {
 }
 
 class ImpossibleMoveException extends IllegalMoveException {
-  ImpossibleMoveException(Move m) : super(m, "Illegal/impossible move");
+  final Impossibility impos;
+  ImpossibleMoveException(Move m, Impossibility impos)
+      : this.impos = impos,
+        super(m, "Illegal/impossible move " + impos.toString());
 }
 
 class IllegalPromotionException extends IllegalMoveException {

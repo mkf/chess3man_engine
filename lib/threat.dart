@@ -26,10 +26,10 @@ Future<bool> isThereAThreat(
     [Square alrtjf = null]) {
   Square tjf = alrtjf ?? b.gPos(from);
   Iterable<Vector> vecs = tjf.fig.vecs(from, where);
-  Iterable<Future<bool>> futbools = vecs.map((Vector vec) =>
+  Iterable<Future<Impossibility>> futbools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
-  Stream<bool> strofbools = new Stream<bool>.fromFutures(futbools);
-  return (strofbools.firstWhere((bool elem) => elem, defaultValue: () => false))
+  Stream<Impossibility> strofbools = new Stream<Impossibility>.fromFutures(futbools);
+  return (strofbools.firstWhere((Impossibility elem) => elem?.canI??true, defaultValue: () => false))
       as Future<bool>; //TODO: avoid [as]
 }
 
