@@ -462,7 +462,7 @@ abstract class ContinousVector implements Vector {
 abstract class AxisVector extends ContinousVector {
   final bool direc;
   const AxisVector(int t, [bool direc = null])
-      : this.direc = (direc != null) ? !(t < 0) : direc,
+      : this.direc = direc ?? !(t < 0),
         super(((direc != null) ? (t < 0 ? -t : t) : t));
   const AxisVector.unit(this.direc) : super.unit();
   int get t => direc ? abs : -abs;

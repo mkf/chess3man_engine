@@ -24,25 +24,22 @@ class Move {
   Pos get to => vec.addTo(from);
   Fig get fromsq => before.board.gPos(from);
   Fig get what {
-    if(fromsq==null) throw new NothingHereAlreadyException(this);
+    print(before.board.toJson());
+    if (fromsq == null) throw new NothingHereAlreadyException(this,fromsq);
     return fromsq;
   }
+
   Color get who => what.color;
   Fig get tosq => before.board.gPos(to);
   Fig get alreadyThere => tosq;
   Future<bool> possible() async {
     //TODO: Pos.correct?
-    if (fromsq==null) throw new NothingHereAlreadyException(this);
+    if (fromsq == null) throw new NothingHereAlreadyException(this,fromsq);
     if (what.color != before.movesnext)
       throw new ThatColorDoesNotMoveNowException(this, what.color);
-    Impossibility impos = await possib(
-        from,
-        before.board,
-        vec,
-        before.moatsstate,
-        before.enpassant,
-        before.castling);
-    if(impos!=null) throw new ImpossibleMoveException(this, impos);
+    Impossibility impos = await possib(from, before.board, vec,
+        before.moatsstate, before.enpassant, before.castling);
+    if (impos != null) throw new ImpossibleMoveException(this, impos);
     if (vec is PawnPromVector) {
       FigType toft = (vec as PawnPromVector).toft;
       switch (toft) {
@@ -74,7 +71,7 @@ class Move {
       } else if (to.file % 8 == CastlingVector.kfm)
         castling.change(to.colorSegm, ColorCastling.off);
     }
-    int halfMoveClock = (what.type == FigType.pawn || (tosq!=null))
+    int halfMoveClock = (what.type == FigType.pawn || (tosq != null))
         ? 0
         : before.halfmoveclock + 1;
     EnPassantStore enPassantStore = before.enpassant;
@@ -121,6 +118,7 @@ class Move {
         before.fullmovenumber + 1);
     Future<PlayersAlive> evdDeath;
     if (evaluateDeath) evdDeath = evalDeath(next);
+    print(b.toJson());
     Pos heyitscheck = await amIinCheck(next, what.color);
     if (heyitscheck != null)
       throw new WeInCheckException(this, heyitscheck, next);
@@ -151,8 +149,11 @@ class IllegalMoveException implements Exception {
 }
 
 class NothingHereAlreadyException extends IllegalMoveException {
-  NothingHereAlreadyException(Move m)
-      : super(m, "How do you move that which does not exist?");
+  final Fig sq;
+  NothingHereAlreadyException(Move m, Fig sq)
+      : this.sq = sq,
+        super(
+            m, "How do you move that which does not exist (${sq.toString()})?");
 }
 
 class ThatColorDoesNotMoveNowException extends IllegalMoveException {

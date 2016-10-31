@@ -108,7 +108,7 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
       os.alivecolors,
       os.fullmovenumber);
   for (final Pos oac
-      in AMFT.keys.where((Pos pos) => (s.board.gPos(pos).color == who)))
+      in AMFT.keys.where((Pos pos) => (s.board.gPos(pos)?.color == who)))
     for (final Pos oacp in AMFT[oac])
       for (final Vector vec in s.board.gPos(oac).vecs(oac, oacp)) {
         Move m = new Move(
@@ -118,7 +118,7 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
                 : vec,
             s);
         try {
-          if (m.after() != null) return true;
+          if (m.after(evaluateDeath: false) != null) return true;
         } on IllegalMoveException catch (_) {}
       }
   return false;

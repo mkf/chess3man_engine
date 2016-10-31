@@ -21,6 +21,17 @@ void main() {
     Vector vec = vecs.first;
     expect(vec, isNotNull);
     Move first = new Move(from, vec, newState);
-    expect(await first.after(),isNotNull);
+    print("A");
+    Fig realsq = newState.b.b[1][0];
+    print(realsq.toString());
+    Fig oursq = newState.b.gPos(new Pos(1, 0));
+    print(oursq.toString());
+    expect(oursq, equals(realsq));
+    print("H");
+    print(first.before.b.toJson());
+    print("J");
+    State fiaft = await first.after();
+    print(first.before.b.toJson());
+    expect(fiaft, isNotNull);
   });
 }

@@ -184,7 +184,7 @@ class Board {
       6, (_) => new List<Fig>(24));
   Board();
   Board.withB(this.b);
-  Board.fromB(List<List<Fig>> b) : this.b = new List<List<Fig>>.from(b);
+  Board.fromB(List<List<Fig>> b) : this.b = new List<List<Fig>>.generate(6, (int fil) => new List<Fig>.from(b[fil]));
   Board.clone(Board orig) : this.fromB(orig.b);
   Board.fromInts(List<List<int>> li)
       : this.withB(new List<List<Fig>>.generate(
