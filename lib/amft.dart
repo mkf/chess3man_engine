@@ -10,7 +10,7 @@ BuiltMap<Pos, BuiltSet<Pos>> _amftinit() {
     for (Pos to = new Pos.zero(); to != null; to = to.next()) {
       if (from
                   .continousVectorsTo(to)
-                  .where((ContinousVector elem) => elem != null)
+                  //.where((ContinousVector elem) => elem != null)
                   .length >
               0 ||
           from.knightVectorTo(to) != null) ourslave.add(to);
