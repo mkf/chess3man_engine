@@ -119,9 +119,11 @@ class Move {
     Future<PlayersAlive> evdDeath;
     if (evaluateDeath) evdDeath = evalDeath(next);
     print(b.toJson());
-    Pos heyitscheck = await amIinCheck(next, what.color);
-    if (heyitscheck != null)
-      throw new WeInCheckException(this, heyitscheck, next);
+    if(evaluateDeath) { // should it be there?
+      Pos heyitscheck = await amIinCheck(next, what.color);
+      if (heyitscheck != null)
+        throw new WeInCheckException(this, heyitscheck, next);
+    }
     if (vec.moats(from).isNotEmpty) {
       Function ctfvitat = (Color c) async {
         return (isThereAThreat(b, await whereIsKing(b, c), to, next.alivecolors,
