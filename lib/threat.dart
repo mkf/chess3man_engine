@@ -118,8 +118,8 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
                 : vec,
             s);
         try {
-          if (m.after(evaluateDeath: false) != null) return true;
-        } on IllegalMoveException catch (_) {}
+          if (await m.after(evaluateDeath: false) != null) return true;
+        } on IllegalMoveException {}
       }
   return false;
 }

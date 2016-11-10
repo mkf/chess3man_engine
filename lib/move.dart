@@ -32,28 +32,29 @@ class Move {
   Color get who => what.color;
   Fig get tosq => before.board.gPos(to);
   Fig get alreadyThere => tosq;
-  Future<bool> possible() async {
+  Future<IllegalMoveException> possible() async {
     //TODO: Pos.correct?
-    if (fromsq == null) throw new NothingHereAlreadyException(this,fromsq);
+    if (fromsq == null) return new NothingHereAlreadyException(this,fromsq);
     if (what.color != before.movesnext)
-      throw new ThatColorDoesNotMoveNowException(this, what.color);
+      return new ThatColorDoesNotMoveNowException(this, what.color);
     Impossibility impos = await possib(from, before.board, vec,
         before.moatsstate, before.enpassant, before.castling);
-    if (impos != null) throw new ImpossibleMoveException(this, impos);
+    if (impos != null) return new ImpossibleMoveException(this, impos);
     if (vec is PawnPromVector) {
       FigType toft = (vec as PawnPromVector).toft;
       switch (toft) {
         case FigType.zeroFigType:
         case FigType.king:
         case FigType.pawn:
-          throw new IllegalPromotionException(this, toft);
+          return new IllegalPromotionException(this, toft);
       }
     }
-    return true;
+    return null;
   }
 
   Future<State> after({bool evaluateDeath: true}) async {
-    await possible();
+    IllegalMoveException illegal = await possible();
+    if(illegal!=null) throw illegal;
     ColorCastling colorCastling = before.castling.give(who);
     if (what.type == FigType.king) colorCastling = ColorCastling.off;
     if (what.type == FigType.rook && from.rank == 0) {
