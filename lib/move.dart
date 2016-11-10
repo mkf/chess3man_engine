@@ -25,7 +25,7 @@ class Move {
   Fig get fromsq => before.board.gPos(from);
   Fig get what {
     print(before.board.toJson());
-    if (fromsq == null) throw new NothingHereAlreadyException(this,fromsq);
+    if (fromsq == null) throw new NothingHereAlreadyException(this, fromsq);
     return fromsq;
   }
 
@@ -34,7 +34,7 @@ class Move {
   Fig get alreadyThere => tosq;
   Future<IllegalMoveException> possible() async {
     //TODO: Pos.correct?
-    if (fromsq == null) return new NothingHereAlreadyException(this,fromsq);
+    if (fromsq == null) return new NothingHereAlreadyException(this, fromsq);
     if (what.color != before.movesnext)
       return new ThatColorDoesNotMoveNowException(this, what.color);
     Impossibility impos = await possib(from, before.board, vec,
@@ -52,40 +52,50 @@ class Move {
     return null;
   }
 
+  ColorCastling afterColorCastling(
+      ColorCastling colorCastling, FigType whatype, Color who, Pos from) {
+    switch (what.type) {
+      case FigType.king:
+        return ColorCastling.off;
+      case FigType.rook:
+        if (from.rank == 0)
+          switch (from.file - (who.board * 8)) {
+            case 0:
+              return colorCastling.offqs();
+            case 7:
+              return colorCastling.offks();
+          }
+    }
+    return colorCastling;
+  }
+
+  Castling afterCastling(
+      Castling castling, FigType whatype, Color who, Pos from, Pos to) {
+    castling = before.castling.change(
+        who, afterColorCastling(castling.give(who), whatype, who, from));
+    if (to.rank == 0) {
+      switch (to.file % 8) {
+        case 7:
+          Color segmCol = to.colorSegm;
+          return castling.change(segmCol, castling.give(segmCol).offks());
+        case 0:
+          Color segmCol = to.colorSegm;
+          return castling.change(to.colorSegm, castling.give(segmCol).offqs());
+        case CastlingVector.kfm:
+          return castling.change(to.colorSegm, ColorCastling.off);
+      }
+    }
+    return castling;
+  }
+
   Future<State> after({bool evaluateDeath: true}) async {
     IllegalMoveException illegal = await possible();
-    if(illegal!=null) throw illegal;
-    ColorCastling colorCastling = before.castling.give(who);
-    if (what.type == FigType.king) colorCastling = ColorCastling.off;
-    if (what.type == FigType.rook && from.rank == 0) {
-      if (from.file == who.board * 8) colorCastling = colorCastling.offqs();
-      if (from.file == who.board * 8 + 7) colorCastling = colorCastling.offks();
-    }
-    Castling castling = before.castling.change(who, colorCastling);
-    if (to.rank == 0) {
-      if (to.file % 8 == 7) {
-        Color segmCol = to.colorSegm;
-        castling.change(segmCol, castling.give(segmCol).offks());
-      } else if (to.file % 8 == 0) {
-        Color segmCol = to.colorSegm;
-        castling.change(segmCol, castling.give(segmCol).offqs());
-      } else if (to.file % 8 == CastlingVector.kfm)
-        castling.change(to.colorSegm, ColorCastling.off);
-    }
-    int halfMoveClock = (what.type == FigType.pawn || (tosq != null))
-        ? 0
-        : before.halfmoveclock + 1;
-    EnPassantStore enPassantStore = before.enpassant;
-    if (vec is PawnLongJumpVector)
-      enPassantStore = //TODO: avoid [as]
-          enPassantStore.appeared((vec as PawnLongJumpVector).enpfield(from));
-    else
-      enPassantStore = enPassantStore.nothing();
+    if (illegal != null) throw illegal;
     if ((vec is PawnVector) &&
         (!(vec is PawnPromVector)) &&
         (vec as PawnVector).reqProm(from.rank))
       throw new NeedsToBePromotedException(this);
-    Board b = await afterBoard(before.board, vec, from, before.enpassant);
+    Future<Board> fb = afterBoard(before.board, vec, from, before.enpassant);
     MoatsState moatsState = before.moatsstate;
     if ((!(vec is CastlingVector)) &&
         ((!(vec is PawnVector)) || (vec is PawnPromVector))) {
@@ -100,27 +110,35 @@ class Move {
         for (int i = curmoat.board * 8;
             moatbridging && i < (curmoat.board + 1) * 8;
             i++) {
-          if (b.gPos(new Pos(0, i)).color == curmoat) moatbridging = false;
+          if ((await fb).gPos(new Pos(0, i)).color == curmoat)
+            moatbridging = false;
         }
         if (moatbridging)
           moatsState = moatsState.bridgeBothSidesOfColor(curmoat);
       }
     }
+    EnPassantStore enPassantStore = (vec is PawnLongJumpVector)
+        ? before.enpassant.appeared((vec as PawnLongJumpVector).enpfield(from))
+        : before.enpassant.nothing();
+    Board b = await fb;
     State next = new State(
         b,
         moatsState,
         before.alivecolors.give(before.movesnext.next)
             ? before.movesnext.next
             : before.movesnext.previous,
-        castling,
+        afterCastling(before.castling, what.type, who, from, to),
         enPassantStore,
-        halfMoveClock,
+        (what.type == FigType.pawn || (tosq != null))
+            ? 0
+            : before.halfmoveclock + 1,
         before.alivecolors,
         before.fullmovenumber + 1);
     Future<PlayersAlive> evdDeath;
     if (evaluateDeath) evdDeath = evalDeath(next);
-    print(b.toJson());
-    if(evaluateDeath) { // should it be there?
+    //print((await b).toJson());
+    if (evaluateDeath) {
+      // should it be there?
       Pos heyitscheck = await amIinCheck(next, what.color);
       if (heyitscheck != null)
         throw new WeInCheckException(this, heyitscheck, next);

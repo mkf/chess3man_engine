@@ -15,8 +15,7 @@ import 'prom.dart';
 Future<Pos> whereIsKing(Board b, Color who) async {
   for (final Pos opos in AMFT.keys) {
     final Fig sq = b.gPos(opos);
-    if (sq!=null && sq.color == who && sq.type == FigType.king)
-      return opos;
+    if (sq != null && sq.color == who && sq.type == FigType.king) return opos;
   }
   return null;
 }
@@ -28,9 +27,10 @@ Future<bool> isThereAThreat(
   Iterable<Vector> vecs = tjf.vecs(from, where);
   Iterable<Future<Impossibility>> futbools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
-  Stream<Impossibility> strofbools = new Stream<Impossibility>.fromFutures(futbools);
-  return (strofbools.firstWhere((Impossibility elem) => elem?.canI??true, defaultValue: () => false))
-      as Future<bool>; //TODO: avoid [as]
+  Stream<Impossibility> strofbools =
+      new Stream<Impossibility>.fromFutures(futbools);
+  return (strofbools.firstWhere((Impossibility elem) => elem?.canI ?? true,
+      defaultValue: () => false)) as Future<bool>; //TODO: avoid [as]
 }
 
 Future<Pos> threatChecking(
@@ -38,7 +38,7 @@ Future<Pos> threatChecking(
   Color who = b.gPos(where).color;
   for (final Pos opos in AMFT.keys) {
     Fig tjf = b.gPos(opos);
-    if (tjf!=null && tjf.color != who && pa.give(tjf.color)) {
+    if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
       if (await isThereAThreat(b, where, opos, pa, ep, tjf)) return opos;
     }
   }
@@ -66,7 +66,7 @@ Iterable<FriendOrNot> friendsAndNot(Board b, Color who, PlayersAlive pa) sync* {
     for (final Pos opos in AMFT.keys) {
       final Fig tjf = b.gPos(opos);
       final bool friend = (tjf.color == who ? true : null) ??
-          ((tjf!=null && pa.give(tjf.color)) ? false : null);
+          ((tjf != null && pa.give(tjf.color)) ? false : null);
       if (friend != null) yield new FriendOrNot(friend, opos);
     }
 }
@@ -119,7 +119,9 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
             s);
         try {
           if (await m.after(evaluateDeath: false) != null) return true;
-        } on IllegalMoveException {}
+        } on IllegalMoveException {
+          continue;
+        }
       }
   return false;
 }
@@ -128,7 +130,7 @@ Future<PlayersAlive> evalDeath(State s) async {
   bool testCheckmate = true;
   Color player = s.movesnext;
   PlayersAlive pa = s.alivecolors;
-  for (int indit=0;indit<3;indit++) {
+  for (int indit = 0; indit < 3; indit++) {
     if (pa.give(player)) {
       if (testCheckmate &&
           (whereIsKing(s.board, player) == null ||
