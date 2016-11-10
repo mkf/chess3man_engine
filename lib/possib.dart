@@ -20,7 +20,13 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
   Color ourcolor = fromsq.color; //Color of from
   assert(ourcolor!=null);
   Pos to = v?.addTo(from); //our destination Pos
-  Fig tosq = b.gPos(to); //our destination Square
+  Fig tosq;
+  try {
+    tosq = b.gPos(to); //our destination Square
+  } on RangeError catch (e) {
+    print(to.toString());
+    rethrow;
+  }
   Color tocol = fromsq?.color; //Color of dest Fig or null
 
   //As stated in Clif's email from Mon, 2 Nov 2015 11:32:54 -0500

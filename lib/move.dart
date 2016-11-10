@@ -21,10 +21,11 @@ class Move {
   final Vector vec;
   final State before;
   const Move(this.from, this.vec, this.before);
+  String toString() => "þ${from.toString()}»${vec.toString()}«\n${before.toString()}";
   Pos get to => vec.addTo(from);
   Fig get fromsq => before.board.gPos(from);
   Fig get what {
-    print(before.board.toJson());
+    print(before.board.toString());
     if (fromsq == null) throw new NothingHereAlreadyException(this, fromsq);
     return fromsq;
   }

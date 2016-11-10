@@ -121,6 +121,12 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
           if (await m.after(evaluateDeath: false) != null) return true;
         } on IllegalMoveException {
           continue;
+        } on RangeError {
+          print(vec.toString());
+          print(m.toString());
+          print(oac.toString());
+          print(oacp.toString());
+          rethrow;
         }
       }
   return false;

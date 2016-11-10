@@ -9,6 +9,7 @@ class MoatsState {
   const MoatsState(this.bw, this.wg, this.gb);
   static const MoatsState allBridged = const MoatsState(true, true, true);
   static const MoatsState noBridges = const MoatsState(false, false, false);
+  String toString() => "M${bw?"|":"-"}${wg?"|":"-"}${gb?"|":"-"}";
   bool isBridgedBetween(Color a, Color b) {
     Color bef = a.next == b ? a : b.next == a ? b : null;
     assert(bef != null);

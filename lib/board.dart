@@ -202,6 +202,19 @@ class Board {
     }
   }
   List<List<Fig>> toJson() => b;
+  String toString() {
+    String main = "[";
+    for(int i=5;i>=0;i--) {
+      String sub = "[ ";
+      for(int j=0;j<24;j++) {
+        sub += (b[i][j]?.toString() ?? "__") + " ";
+      }
+      if(i!=0) sub += "] \n ";
+      main += sub;
+    }
+    main += "]]";
+    return main;
+  }
   void pFig(Pos pos, Fig fig) {
     b[pos.rank][pos.file] = fig;
   }
