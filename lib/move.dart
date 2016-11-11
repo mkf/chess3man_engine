@@ -21,7 +21,8 @@ class Move {
   final Vector vec;
   final State before;
   const Move(this.from, this.vec, this.before);
-  String toString() => "þ${from.toString()}»${vec.toString()}«\n${before.toString()}";
+  String toString() =>
+      "þ${from.toString()}»${vec.toString()}«\n${before.toString()}";
   Pos get to => vec.addTo(from);
   Fig get fromsq => before.board.gPos(from);
   Fig get what {
@@ -53,7 +54,7 @@ class Move {
     return null;
   }
 
-  ColorCastling afterColorCastling(
+  static ColorCastling afterColorCastling(
       ColorCastling colorCastling, FigType whatype, Color who, Pos from) {
     switch (what.type) {
       case FigType.king:
@@ -70,7 +71,7 @@ class Move {
     return colorCastling;
   }
 
-  Castling afterCastling(
+  static Castling afterCastling(
       Castling castling, FigType whatype, Color who, Pos from, Pos to) {
     castling = before.castling.change(
         who, afterColorCastling(castling.give(who), whatype, who, from));
@@ -89,14 +90,7 @@ class Move {
     return castling;
   }
 
-  Future<State> after({bool evaluateDeath: true}) async {
-    IllegalMoveException illegal = await possible();
-    if (illegal != null) throw illegal;
-    if ((vec is PawnVector) &&
-        (!(vec is PawnPromVector)) &&
-        (vec as PawnVector).reqProm(from.rank))
-      throw new NeedsToBePromotedException(this);
-    Future<Board> fb = afterBoard(before.board, vec, from, before.enpassant);
+  Future<MoatsState> afterMoatsState(Future<Board> fb) async {
     MoatsState moatsState = before.moatsstate;
     if ((!(vec is CastlingVector)) &&
         ((!(vec is PawnVector)) || (vec is PawnPromVector))) {
@@ -118,13 +112,25 @@ class Move {
           moatsState = moatsState.bridgeBothSidesOfColor(curmoat);
       }
     }
+    return moatsState;
+  }
+
+  Future<State> after({bool evaluateDeath: true}) async {
+    IllegalMoveException illegal = await possible();
+    if (illegal != null) throw illegal;
+    if ((vec is PawnVector) &&
+        (!(vec is PawnPromVector)) &&
+        (vec as PawnVector).reqProm(from.rank))
+      throw new NeedsToBePromotedException(this);
+    Future<Board> fb = afterBoard(before.board, vec, from, before.enpassant);
+    Future<MoatsState> fms = afterMoatsState(fb);
     EnPassantStore enPassantStore = (vec is PawnLongJumpVector)
         ? before.enpassant.appeared((vec as PawnLongJumpVector).enpfield(from))
         : before.enpassant.nothing();
     Board b = await fb;
     State next = new State(
         b,
-        moatsState,
+        await fms,
         before.alivecolors.give(before.movesnext.next)
             ? before.movesnext.next
             : before.movesnext.previous,
