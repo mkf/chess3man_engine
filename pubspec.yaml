@@ -1,5 +1,5 @@
 name: chess3man_engine
-version: 0.0.6
+version: 0.0.7
 description: 3manchess engine library
 authors:
 - "Michał Krzysztof Feiler <archiet@platinum.edu.pl>"
