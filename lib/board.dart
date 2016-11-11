@@ -79,7 +79,7 @@ class Fig {
   Vector vec(Pos from, Pos to) => null;
   Iterable<Vector> vecs(Pos from, Pos to) sync* {
     Vector v = vec(from, to);
-    if(v!=null) yield v;
+    if (v != null) yield v;
   }
 
   ///returns `[[ _ P C C C T T T ]]`
@@ -91,8 +91,10 @@ class Fig {
   PawnCenter get pawnCenter => null;
   @override
   String toString() => new String.fromCharCodes(<int>[$space, toRune()]);
-  static Fig fromSevenbit(int sb) => sb>0?sub(new FigType(sb & 7),
-      new Color((sb >> 3) & 7), new PawnCenter((sb >> 6) > 0)):null;
+  static Fig fromSevenbit(int sb) => sb > 0
+      ? sub(new FigType(sb & 7), new Color((sb >> 3) & 7),
+          new PawnCenter((sb >> 6) > 0))
+      : null;
   static Fig sub(FigType type, Color color,
       [PawnCenter pc = PawnCenter.didnt]) {
     switch (type) {
@@ -127,7 +129,8 @@ class Rook extends Fig {
   const Rook(Color color) : super(FigType.rook, color);
   @override
   Iterable<AxisVector> vecs(Pos from, Pos to) => vectors(from, to);
-  static Iterable<AxisVector> vectors(Pos from, Pos to) => from.axisVectorsTo(to);
+  static Iterable<AxisVector> vectors(Pos from, Pos to) =>
+      from.axisVectorsTo(to);
 }
 
 class Knight extends Fig {
@@ -180,17 +183,21 @@ class Square {
 */
 
 class Board {
-  List<List<Fig>> b = new List<List<Fig>>.generate(
-      6, (_) => new List<Fig>(24));
+  List<List<Fig>> b = new List<List<Fig>>.generate(6, (_) => new List<Fig>(24));
   Board();
   Board.withB(this.b);
-  Board.fromB(List<List<Fig>> b) : this.b = new List<List<Fig>>.generate(6, (int fil) => new List<Fig>.from(b[fil]));
+  Board.fromB(List<List<Fig>> b)
+      : this.b = new List<List<Fig>>.generate(
+            6, (int fil) => new List<Fig>.from(b[fil]));
   Board.clone(Board orig) : this.fromB(orig.b);
   Board.fromInts(List<List<int>> li)
       : this.withB(new List<List<Fig>>.generate(
             6,
             (int ind) => new List<Fig>.generate(
-                24, (int indf) => li[ind][indf]>0?Fig.fromSevenbit(li[ind][indf]):null)));
+                24,
+                (int indf) => li[ind][indf] > 0
+                    ? Fig.fromSevenbit(li[ind][indf])
+                    : null)));
   Board.newGame() {
     for (final Color col in Color.colors) {
       for (int i = 0; i < 8; i++) {
@@ -204,17 +211,18 @@ class Board {
   List<List<Fig>> toJson() => b;
   String toString() {
     String main = "[";
-    for(int i=5;i>=0;i--) {
+    for (int i = 5; i >= 0; i--) {
       String sub = "[ ";
-      for(int j=0;j<24;j++) {
+      for (int j = 0; j < 24; j++) {
         sub += (b[i][j]?.toString() ?? "__") + " ";
       }
-      if(i!=0) sub += "] \n ";
+      if (i != 0) sub += "] \n ";
       main += sub;
     }
     main += "]]";
     return main;
   }
+
   void pFig(Pos pos, Fig fig) {
     b[pos.rank][pos.file] = fig;
   }
@@ -224,7 +232,7 @@ class Board {
   }
 
   Fig gPos(Pos pos) => b[pos.rank][pos.file];
-  bool nePos(Pos pos) => b[pos.rank][pos.file]!=null;
+  bool nePos(Pos pos) => b[pos.rank][pos.file] != null;
 
   void mFig(Pos from, Pos to) {
     pFig(to, gPos(from));

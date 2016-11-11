@@ -18,7 +18,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
     EnPassantStore ep, Castling c) async {
   Fig fromsq = b.gPos(from); //Square we are from
   Color ourcolor = fromsq.color; //Color of from
-  assert(ourcolor!=null);
+  assert(ourcolor != null);
   Pos to = v?.addTo(from); //our destination Pos
   Fig tosq;
   try {
@@ -40,7 +40,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
 
   //En passant capturing :
   if (v is PawnCapVector &&
-      (tosq==null) && //!ep.match(to))
+      (tosq == null) && //!ep.match(to))
       !(ep.last.equal(to) &&
           b.gPos(new Pos(3, ep.last.file)).color == ourcolor.previous) &&
       !(ep.prev.equal(to) &&
@@ -49,7 +49,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
   }
 
   //Cannot capture our own piece
-  if (tosq!=null && tocol == ourcolor)
+  if (tosq != null && tocol == ourcolor)
     return new CannotCaptureSameColorImposs(ourcolor, to, tosq);
 
   //If there are pieces in our way return false
@@ -66,7 +66,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
     return new ForbiddenCastlingImposs(colorCastling, v);
 
   //If we are capturing thru moats
-  if (moats.length > 0 && tosq==null)
+  if (moats.length > 0 && tosq == null)
     return new CapturingThruMoatsImposs(moats, to, tosq);
 
   //If some moat we are passing is not bridged

@@ -24,6 +24,7 @@ Future<Board> afterBoard(
         (ep.prev.equal(to) &&
             b.gPos(new Pos(3, ep.prev.file)).color == ourcolor.next))
       b.empt(new Pos(3, to.file));
-  } else b.mFig(from, vec.addTo(from));
+  } else
+    b.mFig(from, vec.addTo(from));
   return b;
 }
