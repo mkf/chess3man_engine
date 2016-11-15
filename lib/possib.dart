@@ -1,13 +1,14 @@
 library chess3man.engine.possib;
 
-import "board.dart";
-import "pos.dart";
-import "moats.dart";
-import "castling.dart";
-import 'epstore.dart';
-import 'colors.dart';
-import 'castlingcheck.dart';
 import 'dart:async';
+
+import "board.dart";
+import "castling.dart";
+import 'castlingcheck.dart';
+import 'colors.dart';
+import 'epstore.dart';
+import "moats.dart";
+import "pos.dart";
 
 Future<bool> checkempties(Pos from, Board b, Vector v) async {
   for (final Pos a in v.emptiesFrom(from)) if (b.nePos(a)) return false;
@@ -23,7 +24,7 @@ Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
   Fig tosq;
   try {
     tosq = b.gPos(to); //our destination Square
-  } on RangeError catch (e) {
+  } on RangeError {
     print(to.toString());
     rethrow;
   }
