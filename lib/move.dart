@@ -1,20 +1,22 @@
 library chess3man.engine.move;
 
-import 'pos.dart';
-import 'state.dart';
-import 'board.dart';
-import 'possib.dart';
 import 'dart:async';
-import 'colors.dart';
-import 'castling.dart';
-import 'epstore.dart';
-import 'prom.dart';
-import 'moats.dart';
+
 import 'afterboard.dart';
+import 'board.dart';
+import 'castling.dart';
+import 'colors.dart';
+import 'epstore.dart';
+import 'moats.dart';
+import 'pos.dart';
+import 'possib.dart';
+import 'prom.dart';
+import 'state.dart';
 import 'threat.dart';
-export 'state.dart';
-export 'pos.dart';
+
 export 'colors.dart';
+export 'pos.dart';
+export 'state.dart';
 
 class Move {
   final Pos from;
@@ -56,7 +58,7 @@ class Move {
 
   static ColorCastling afterColorCastling(
       ColorCastling colorCastling, FigType whatype, Color who, Pos from) {
-    switch (what.type) {
+    switch (whatype) {
       case FigType.king:
         return ColorCastling.off;
       case FigType.rook:
@@ -73,7 +75,7 @@ class Move {
 
   static Castling afterCastling(
       Castling castling, FigType whatype, Color who, Pos from, Pos to) {
-    castling = before.castling.change(
+    castling = castling.change(
         who, afterColorCastling(castling.give(who), whatype, who, from));
     if (to.rank == 0) {
       switch (to.file % 8) {
