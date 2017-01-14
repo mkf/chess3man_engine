@@ -18,24 +18,53 @@ export 'colors.dart';
 export 'pos.dart';
 export 'state.dart';
 
+///Move is defined by the starting position, the vector and the preceding state
 class Move {
+  ///the starting square
   final Pos from;
+
+  ///the move vector
   final Vector vec;
+
+  ///the preceding state
   final State before;
+
+  ///the simple constructor
   const Move(this.from, this.vec, this.before);
   String toString() =>
       "þ${from.toString()}»${vec.toString()}«\n${before.toString()}";
+
+  ///[to] getter adds the [vec]tor to [from] (the starting pos)
   Pos get to => vec.addTo(from);
+
+  ///[fromsq] returns [before]`.board.gPos(`[from]`) ([Board.gPos])
   Fig get fromsq => before.board.gPos(from);
+
+  ///returns [fromsq] or throws [NothingHereAlreadyException] containing it if the square is empty
   Fig get what {
     print(before.board.toString());
     if (fromsq == null) throw new NothingHereAlreadyException(this, fromsq);
     return fromsq;
   }
 
+  ///returns the color of [what]/[fromsq] throwing [NothingHereAlreadyException] as [what] does as it utilizes [what]
   Color get who => what.color;
+
+  ///[tosq] returns `before.board.gPos([to])` ([Board.gPos])
   Fig get tosq => before.board.gPos(to);
+
+  ///[alreadyThere](alias to [tosq]) returns `before.board.gPos([to])` ([Board.gPos])
   Fig get alreadyThere => tosq;
+
+  ///[possible] checks whether
+  /// * [fromsq] is not empty
+  ///     [NothingHereAlreadyException]
+  /// * the [Color] of [what] is equal to [before].[State.movesnext]
+  ///     [ThatColorDoesNotMoveNowException]
+  /// * the move is possible by the criteria of [possib]
+  ///     [ImpossibleMoveException]
+  /// * [PawnPromVector.toft] is not [FigType.zeroFigType]/[FigType.king]/[FigType.pawn],
+  ///     [IllegalPromotionException]
   Future<IllegalMoveException> possible() async {
     //TODO: Pos.correct?
     if (fromsq == null) return new NothingHereAlreadyException(this, fromsq);
@@ -120,16 +149,22 @@ class Move {
   Future<State> after({bool evaluateDeath: true}) async {
     IllegalMoveException illegal = await possible();
     if (illegal != null) throw illegal;
+
     if ((vec is PawnVector) &&
         (!(vec is PawnPromVector)) &&
         (vec as PawnVector).reqProm(from.rank))
       throw new NeedsToBePromotedException(this);
+
     Future<Board> fb = afterBoard(before.board, vec, from, before.enpassant);
+
     Future<MoatsState> fms = afterMoatsState(fb);
+
     EnPassantStore enPassantStore = (vec is PawnLongJumpVector)
         ? before.enpassant.appeared((vec as PawnLongJumpVector).enpfield(from))
         : before.enpassant.nothing();
+
     Board b = await fb;
+
     State next = new State(
         b,
         await fms,
@@ -143,6 +178,7 @@ class Move {
             : before.halfmoveclock + 1,
         before.alivecolors,
         before.fullmovenumber + 1);
+
     Future<PlayersAlive> evdDeath;
     if (evaluateDeath) evdDeath = evalDeath(next);
     //print((await b).toJson());
@@ -152,17 +188,19 @@ class Move {
       if (heyitscheck != null)
         throw new WeInCheckException(this, heyitscheck, next);
     }
+
     if (vec.moats(from).isNotEmpty) {
       Function ctfvitat = (Color c) async {
-        return (isThereAThreat(b, await whereIsKing(b, c), to, next.alivecolors,
-                enPassantStore)
+        return await (isThereAThreat(b, await whereIsKing(b, c), to,
+                next.alivecolors, enPassantStore)
             .then(CheckInitiatedThruMoatException._chk(this, c, next)));
       };
       Future<Future> ctfvprev = ctfvitat(what.color.previous);
       Future<Future> ctfvnext = ctfvitat(what.color.next);
-      await await ctfvprev;
-      await await ctfvnext;
+      await ctfvprev;
+      await ctfvnext;
     }
+
     return evaluateDeath ? next.setAliveColors(await evdDeath) : next;
   }
 }
