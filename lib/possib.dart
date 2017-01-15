@@ -10,12 +10,12 @@ import 'epstore.dart';
 import "moats.dart";
 import "pos.dart";
 
-Future<bool> checkempties(Pos from, Board b, Vector v) async {
+Future<bool> checkempties(Pos from, BoardType b, Vector v) async {
   for (final Pos a in v.emptiesFrom(from)) if (b.nePos(a)) return false;
   return true;
 }
 
-Future<Impossibility> possib(Pos from, Board b, Vector v, MoatsState m,
+Future<Impossibility> possib(Pos from, BoardType b, Vector v, MoatsState m,
     EnPassantStore ep, Castling c) async {
   Fig fromsq = b.gPos(from); //Square we are from
   Color ourcolor = fromsq.color; //Color of from

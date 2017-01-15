@@ -1,13 +1,18 @@
 library chess3man.engine.board;
 
+import 'package:built_collection/built_collection.dart';
 import "package:charcode/charcode.dart";
+
 import "colors.dart";
 import "pos.dart";
+
 export "pos.dart";
 
 class FigType {
   final int index;
+
   const FigType(this.index);
+
   static const FigType zeroFigType = const FigType(0);
   static const FigType rook = const FigType(1);
   static const FigType knight = const FigType(2);
@@ -15,6 +20,7 @@ class FigType {
   static const FigType queen = const FigType(4);
   static const FigType king = const FigType(5);
   static const FigType pawn = const FigType(6);
+
   int toInt() => this.index;
 }
 
@@ -31,11 +37,16 @@ const List<FigType> firstRankNewGame = const <FigType>[
 
 class PawnCenter {
   final bool pc;
+
   const PawnCenter(this.pc);
+
   static const PawnCenter didnt = const PawnCenter(false);
   static const PawnCenter crossed = const PawnCenter(true);
+
   bool toBool() => this.pc;
+
   int interpunction() => pc ? $exclamation : $dot;
+
   @override
   String toString() => pc ? "Y" : "N";
 }
@@ -43,8 +54,11 @@ class PawnCenter {
 class Piece {
   final FigType type;
   final Color color;
+
   Piece(this.type, this.color);
+
   int toRune() => runeMap[type][color];
+
   @override
   String toString() => new String.fromCharCode(toRune());
   static const Color _w = Color.white;
@@ -70,13 +84,17 @@ class Piece {
 class Fig {
   final FigType type;
   final Color color;
+
   const Fig(this.type, this.color);
+
   const Fig.zero()
       : this.type = FigType.zeroFigType,
         this.color = Color.zeroColor;
 
   int toRune() => Piece.runeMap[type][color];
+
   Vector vec(Pos from, Pos to) => null;
+
   Iterable<Vector> vecs(Pos from, Pos to) sync* {
     Vector v = vec(from, to);
     if (v != null) yield v;
@@ -87,14 +105,19 @@ class Fig {
       (this.pawnCenter?.toBool() == true ? 1 << 6 : 0) +
       (color.toInt() << 3) +
       type.toInt();
+
   int toJson() => sevenbit;
+
   PawnCenter get pawnCenter => null;
+
   @override
   String toString() => new String.fromCharCodes(<int>[$space, toRune()]);
+
   static Fig fromSevenbit(int sb) => sb > 0
       ? sub(new FigType(sb & 7), new Color((sb >> 3) & 7),
           new PawnCenter((sb >> 6) > 0))
       : null;
+
   static Fig sub(FigType type, Color color,
       [PawnCenter pc = PawnCenter.didnt]) {
     switch (type) {
@@ -127,39 +150,49 @@ class Fig {
 
 class Rook extends Fig {
   const Rook(Color color) : super(FigType.rook, color);
+
   @override
   Iterable<AxisVector> vecs(Pos from, Pos to) => vectors(from, to);
+
   static Iterable<AxisVector> vectors(Pos from, Pos to) =>
       from.axisVectorsTo(to);
 }
 
 class Knight extends Fig {
   const Knight(Color color) : super(FigType.knight, color);
+
   //@override
   static KnightVector vector(Pos from, Pos to) => from.knightVectorTo(to);
+
   @override
   KnightVector vec(Pos from, Pos to) => vector(from, to);
 }
 
 class Bishop extends Fig {
   const Bishop(Color color) : super(FigType.bishop, color);
+
   @override
   Iterable<DiagonalVector> vecs(Pos from, Pos to) => vectors(from, to);
+
   static Iterable<DiagonalVector> vectors(Pos from, Pos to) =>
       from.diagonalVectorsTo(to);
 }
 
 class Queen extends Fig {
   const Queen(Color color) : super(FigType.queen, color);
+
   @override
   Iterable<ContinousVector> vecs(Pos from, Pos to) => vectors(from, to);
+
   static Iterable<ContinousVector> vectors(Pos from, Pos to) =>
       from.continousVectorsTo(to);
 }
 
 class King extends Fig {
   const King(Color color) : super(FigType.king, color);
+
   static Vector vector(Pos from, Pos to) => from.kingVectorTo(to);
+
   @override
   Vector vec(Pos from, Pos to) => vector(from, to);
 }
@@ -167,10 +200,13 @@ class King extends Fig {
 class Pawn extends Fig {
   @override
   final PawnCenter pawnCenter;
+
   const Pawn(Color color, [this.pawnCenter = PawnCenter.didnt])
       : super(FigType.pawn, color);
+
   @override
   Vector vec(Pos from, Pos to) => vector(from, to);
+
   static Vector vector(Pos from, Pos to) => from.pawnVectorTo(to);
 }
 
@@ -182,15 +218,79 @@ class Square {
 }
 */
 
-class Board {
+abstract class BoardType {
+  const BoardType();
+  Iterable<Iterable<Fig>> get b;
+
+  Iterable<Iterable<Fig>> toJson() => b;
+
+  String toString() {
+    String main = "[";
+    for (int i = 5; i >= 0; i--) {
+      String sub = "[ ";
+      for (int j = 0; j < 24; j++) {
+        sub += (gPos(new Pos(i, j))?.toString() ?? "__") + " ";
+      }
+      if (i != 0) sub += "] \n ";
+      main += sub;
+    }
+    main += "]]";
+    return main;
+  }
+
+  Fig gPos(Pos pos);
+
+  bool nePos(Pos pos);
+}
+
+class Board extends BoardType {
+  final BuiltList<BuiltList<Fig>> b;
+  const Board(this.b);
+  Board.fromListList(List<List<Fig>> lb)
+      : this.b = new BuiltList<BuiltList<Fig>>(
+            lb.map((List<Fig> e) => new BuiltList<Fig>(e)));
+  Fig gPos(Pos pos) => b[pos.rank][pos.file];
+
+  bool nePos(Pos pos) => b[pos.rank][pos.file] != null;
+
+  static final BuiltList<Fig> rowEmpty = new BuiltList<Fig>(new List<Fig>(24));
+  static final BuiltList<Fig> rowPawns = new BuiltList<Fig>(
+      new List<Fig>.generate(24, (int idx) => new Pawn(new Color(idx ~/ 8))));
+  static final BuiltList<Fig> rowFig = new BuiltList<Fig>(
+      new List<Fig>.generate(
+          24,
+          (int idx) =>
+              Fig.sub(firstRankNewGame[idx % 8], new Color(idx ~/ 8))));
+  static final Board empty = new Board(new BuiltList<BuiltList<Fig>>(
+      new List<BuiltList<Fig>>.generate(6, (_) => rowEmpty)));
+  static final Board newGame = new Board(
+      new BuiltList<BuiltList<Fig>>(<BuiltList<Fig>>[
+    rowFig,
+    rowPawns,
+    rowEmpty,
+    rowEmpty,
+    rowEmpty,
+    rowEmpty
+  ]));
+}
+
+class MutableBoard extends BoardType {
   List<List<Fig>> b = new List<List<Fig>>.generate(6, (_) => new List<Fig>(24));
-  Board();
-  Board.withB(this.b);
-  Board.fromB(List<List<Fig>> b)
+
+  MutableBoard();
+
+  MutableBoard.withB(this.b);
+
+  MutableBoard.fromB(List<List<Fig>> b)
       : this.b = new List<List<Fig>>.generate(
             6, (int fil) => new List<Fig>.from(b[fil]));
-  Board.clone(Board orig) : this.fromB(orig.b);
-  Board.fromInts(List<List<int>> li)
+
+  MutableBoard.clone(BoardType orig) : this.fromB(orig.b);
+  MutableBoard.fromBoard(Board orig) {
+    this.b.setAll(0, orig.b.map((BuiltList<Fig> bfi) => new List<Fig>.from(bfi)));
+  }
+
+  MutableBoard.fromInts(List<List<int>> li)
       : this.withB(new List<List<Fig>>.generate(
             6,
             (int ind) => new List<Fig>.generate(
@@ -198,7 +298,8 @@ class Board {
                 (int indf) => li[ind][indf] > 0
                     ? Fig.fromSevenbit(li[ind][indf])
                     : null)));
-  Board.newGame() {
+
+  MutableBoard.newGame() {
     for (final Color col in Color.colors) {
       for (int i = 0; i < 8; i++) {
         Pos ourz = new Pos.colorSegment(col, 0, i);
@@ -208,20 +309,10 @@ class Board {
       }
     }
   }
-  List<List<Fig>> toJson() => b;
-  String toString() {
-    String main = "[";
-    for (int i = 5; i >= 0; i--) {
-      String sub = "[ ";
-      for (int j = 0; j < 24; j++) {
-        sub += (b[i][j]?.toString() ?? "__") + " ";
-      }
-      if (i != 0) sub += "] \n ";
-      main += sub;
-    }
-    main += "]]";
-    return main;
-  }
+
+  Fig gPos(Pos pos) => b[pos.rank][pos.file];
+
+  bool nePos(Pos pos) => b[pos.rank][pos.file] != null;
 
   void pFig(Pos pos, Fig fig) {
     b[pos.rank][pos.file] = fig;
@@ -230,9 +321,6 @@ class Board {
   void empt(Pos pos) {
     b[pos.rank][pos.file] = null;
   }
-
-  Fig gPos(Pos pos) => b[pos.rank][pos.file];
-  bool nePos(Pos pos) => b[pos.rank][pos.file] != null;
 
   void mFig(Pos from, Pos to) {
     pFig(to, gPos(from));

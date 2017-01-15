@@ -6,9 +6,9 @@ import 'epstore.dart';
 import 'colors.dart';
 import 'dart:async';
 
-Future<Board> afterBoard(
+Future<BoardType> afterBoard(
     Board oldb, Vector vec, Pos from, EnPassantStore ep) async {
-  Board b = new Board.clone(oldb);
+  MutableBoard b = new MutableBoard.fromBoard(oldb);
   if (vec is KingsideCastlingVector) {
     b.mFig(from, vec.addTo(from));
     b.mFig(new Pos(0, from.file + 3), new Pos(0, from.file + 1));

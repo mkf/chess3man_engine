@@ -38,7 +38,7 @@ class Move {
   ///[to] getter adds the [vec]tor to [from] (the starting pos)
   Pos get to => vec.addTo(from);
 
-  ///[fromsq] returns [before]`.board.gPos(`[from]`) ([Board.gPos])
+  ///[fromsq] returns [before]`.board.gPos(`[from]`) ([BoardType.gPos])
   Fig get fromsq => before.board.gPos(from);
 
   ///returns [fromsq] or throws [NothingHereAlreadyException] containing it if the square is empty
@@ -51,10 +51,10 @@ class Move {
   ///returns the color of [what]/[fromsq] throwing [NothingHereAlreadyException] as [what] does as it utilizes [what]
   Color get who => what.color;
 
-  ///[tosq] returns `before.board.gPos([to])` ([Board.gPos])
+  ///[tosq] returns `before.board.gPos([to])` ([BoardType.gPos])
   Fig get tosq => before.board.gPos(to);
 
-  ///[alreadyThere](alias to [tosq]) returns `before.board.gPos([to])` ([Board.gPos])
+  ///[alreadyThere](alias to [tosq]) returns `before.board.gPos([to])` ([BoardType.gPos])
   Fig get alreadyThere => tosq;
 
   ///[possible] checks whether
@@ -123,7 +123,7 @@ class Move {
     return castling;
   }
 
-  Future<MoatsState> afterMoatsState(Future<Board> fb) async {
+  Future<MoatsState> afterMoatsState(Future<BoardType> fb) async {
     MoatsState moatsState = before.moatsstate;
     if ((!(vec is CastlingVector)) &&
         ((!(vec is PawnVector)) || (vec is PawnPromVector))) {
@@ -159,7 +159,7 @@ class Move {
         (vec as PawnVector).reqProm(from.rank))
       throw new NeedsToBePromotedException(this);
 
-    Future<Board> fb = afterBoard(before.board, vec, from, before.enpassant);
+    Future<BoardType> fb = afterBoard(before.board, vec, from, before.enpassant);
 
     Future<MoatsState> fms = afterMoatsState(fb);
 
@@ -167,7 +167,7 @@ class Move {
         ? before.enpassant.appeared((vec as PawnLongJumpVector).enpfield(from))
         : before.enpassant.nothing();
 
-    Board b = await fb;
+    BoardType b = await fb;
 
     State next = new State(
         b,

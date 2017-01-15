@@ -13,7 +13,7 @@ import 'possib.dart';
 import 'prom.dart';
 import "state.dart";
 
-Future<Pos> whereIsKing(Board b, Color who) async {
+Future<Pos> whereIsKing(BoardType b, Color who) async {
   for (final Pos opos in AMFT.keys) {
     final Fig sq = b.gPos(opos);
     if (sq != null && sq.color == who && sq.type == FigType.king) return opos;
@@ -21,7 +21,7 @@ Future<Pos> whereIsKing(Board b, Color who) async {
   return null;
 }
 
-Future<bool> isThereAThreat(Board b, Pos where, Pos from, PlayersAlive pa,
+Future<bool> isThereAThreat(BoardType b, Pos where, Pos from, PlayersAlive pa,
     EnPassantStore ep,
     [Fig alrtjf = null]) {
   Fig tjf = alrtjf ?? b.gPos(from);
@@ -34,7 +34,7 @@ Future<bool> isThereAThreat(Board b, Pos where, Pos from, PlayersAlive pa,
       defaultValue: () => false)) as Future<bool>; //TODO: avoid [as]
 }
 
-Future<Pos> threatChecking(Board b, Pos where, PlayersAlive pa,
+Future<Pos> threatChecking(BoardType b, Pos where, PlayersAlive pa,
     EnPassantStore ep) {
   Color who = b
       .gPos(where)
@@ -65,7 +65,7 @@ Future<Pos> threatChecking(Board b, Pos where, PlayersAlive pa,
   //return null;
 }
 
-Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) {
+Future<Pos> checkChecking(BoardType b, Color who, PlayersAlive pa) {
   assert(pa.give(who));
   return whereIsKing(b, who)
       .then(
@@ -86,7 +86,7 @@ class FriendOrNot {
   const FriendOrNot(this.friend, this.pos);
 }
 
-Iterable<FriendOrNot> friendsAndNot(Board b, Color who, PlayersAlive pa) sync* {
+Iterable<FriendOrNot> friendsAndNot(BoardType b, Color who, PlayersAlive pa) sync* {
   if (pa.give(who))
     for (final Pos opos in AMFT.keys) {
       final Fig tjf = b.gPos(opos);
@@ -100,7 +100,7 @@ bool _tfriend(FriendOrNot elem) => elem.friend;
 
 bool _ffriend(FriendOrNot elem) => !elem.friend;
 
-Stream<FigType> weAreThreateningTypes(Board b, Color who, PlayersAlive pa,
+Stream<FigType> weAreThreateningTypes(BoardType b, Color who, PlayersAlive pa,
     EnPassantStore ep,
     {bool noWeAreThreatened: false}) async* {
   Iterable<FriendOrNot> myioni = friendsAndNot(b, who, pa);
@@ -120,14 +120,14 @@ Stream<FigType> weAreThreateningTypes(Board b, Color who, PlayersAlive pa,
       }
 }
 
-Stream<FigType> weAreThreatened(Board b, Color who, PlayersAlive pa,
+Stream<FigType> weAreThreatened(BoardType b, Color who, PlayersAlive pa,
     EnPassantStore ep) async* {
   yield* weAreThreateningTypes(b, who, pa, ep, noWeAreThreatened: true);
 }
 
 Future<bool> canIMoveWOCheck(State os, Color who) async {
   State s = new State(
-      new Board.clone(os.board),
+      new MutableBoard.clone(os.board),
       os.moatsstate,
       who,
       os.castling,

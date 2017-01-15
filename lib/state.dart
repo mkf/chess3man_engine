@@ -60,12 +60,12 @@ class State {
       this.alivecolors,
       this.fullmovenumber);
   State.clone(State from)
-      : this(new Board.clone(from.b), from.ms, from.mn, from.cas, from.ep,
+      : this(new Board(from.b.b), from.ms, from.mn, from.cas, from.ep,
             from.hmc, from.ac, from.fmn);
   State.newGame()
-      : this(new Board.newGame(), MoatsState.noBridges, Color.white,
+      : this(Board.newGame, MoatsState.noBridges, Color.white,
             Castling.all, EnPassantStore.empty, 0, PlayersAlive.all, 1);
-  Board get b => board;
+  BoardType get b => board;
   MoatsState get ms => moatsstate;
   Color get mn => movesnext;
   Castling get cas => castling;
@@ -73,7 +73,7 @@ class State {
   int get hmc => halfmoveclock;
   int get fmn => fullmovenumber;
   PlayersAlive get ac => alivecolors;
-  State setBoard(Board b) => new State(b, ms, mn, cas, ep, hmc, ac, fmn);
+  State setBoard(BoardType b) => new State(b, ms, mn, cas, ep, hmc, ac, fmn);
   State setMoatsState(MoatsState ms) =>
       new State(b, ms, mn, cas, ep, hmc, ac, fmn);
   State setMovesNext(Color mn) => new State(b, ms, mn, cas, ep, hmc, ac, fmn);

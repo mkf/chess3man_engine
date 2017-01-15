@@ -22,11 +22,8 @@ void main() {
     expect(vec, isNotNull);
     Move first = new Move(from, vec, newState);
     print("A");
-    Fig realsq = newState.b.b[1][0];
-    print(realsq.toString());
     Fig oursq = newState.b.gPos(new Pos(1, 0));
     print(oursq.toString());
-    expect(oursq, equals(realsq));
     print("H");
     print(first.before.b.toJson());
     print("J");
