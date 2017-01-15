@@ -1,16 +1,17 @@
 library chess3man.engine.kingsearch;
 
-import "board.dart";
-import "amft.dart";
 import "dart:async";
-import "colors.dart";
-import "state.dart";
-import "epstore.dart";
-import 'possib.dart';
-import 'moats.dart';
+
+import "amft.dart";
+import "board.dart";
 import 'castling.dart';
+import "colors.dart";
+import "epstore.dart";
+import 'moats.dart';
 import 'move.dart';
+import 'possib.dart';
 import 'prom.dart';
+import "state.dart";
 
 Future<Pos> whereIsKing(Board b, Color who) async {
   for (final Pos opos in AMFT.keys) {
@@ -20,36 +21,59 @@ Future<Pos> whereIsKing(Board b, Color who) async {
   return null;
 }
 
-Future<bool> isThereAThreat(
-    Board b, Pos where, Pos from, PlayersAlive pa, EnPassantStore ep,
+Future<bool> isThereAThreat(Board b, Pos where, Pos from, PlayersAlive pa,
+    EnPassantStore ep,
     [Fig alrtjf = null]) {
   Fig tjf = alrtjf ?? b.gPos(from);
   Iterable<Vector> vecs = tjf.vecs(from, where);
   Iterable<Future<Impossibility>> futbools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
   Stream<Impossibility> strofbools =
-      new Stream<Impossibility>.fromFutures(futbools);
+  new Stream<Impossibility>.fromFutures(futbools);
   return (strofbools.firstWhere((Impossibility elem) => elem?.canI ?? true,
       defaultValue: () => false)) as Future<bool>; //TODO: avoid [as]
 }
 
-Future<Pos> threatChecking(
-    Board b, Pos where, PlayersAlive pa, EnPassantStore ep) async {
-  Color who = b.gPos(where).color;
-  for (final Pos opos in AMFT.keys) {
-    Fig tjf = b.gPos(opos);
-    if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
-      if (await isThereAThreat(b, where, opos, pa, ep, tjf)) return opos;
-    }
-  }
-  return null;
+Future<Pos> threatChecking(Board b, Pos where, PlayersAlive pa,
+    EnPassantStore ep) {
+  Color who = b
+      .gPos(where)
+      .color;
+  //for (final Pos opos in AMFT.keys) {
+  //  Fig tjf = b.gPos(opos);
+  //  if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
+  //    if (await isThereAThreat(b, where, opos, pa, ep, tjf)) return opos;
+  //  }
+  //}
+  // ignore: strong_mode_down_cast_composite
+  return new Stream<Pos>
+  // ignore: strong_mode_down_cast_composite, strong_mode_down_cast_composite
+      .fromFutures(
+      AMFT.keys.map((Pos opos) {
+        Fig tjf = b.gPos(opos);
+        if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
+          return isThereAThreat(b, where, opos, pa, ep, tjf)
+              .then((bool b) => b ? opos : null);
+        }
+        Completer<Pos> _completer = new Completer<Pos>()
+          ..complete(null);
+        Future<Pos> _future = _completer.future;
+        return _future;
+      })
+  )
+      .firstWhere((Pos opos) => opos != null);
+  //return null;
 }
 
-Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) async {
+Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) {
   assert(pa.give(who));
-  Pos wking = await whereIsKing(b, who);
-  assert(wking != null);
-  return await threatChecking(b, wking, pa, EnPassantStore.empty);
+  return whereIsKing(b, who)
+      .then(
+          (Pos wking) {
+        assert(wking != null);
+        return wking;
+      })
+      .then((Pos wking) => threatChecking(b, wking, pa, EnPassantStore.empty));
 }
 
 Future<Pos> amIinCheck(State s, Color who) =>
@@ -58,6 +82,7 @@ Future<Pos> amIinCheck(State s, Color who) =>
 class FriendOrNot {
   final bool friend;
   final Pos pos;
+
   const FriendOrNot(this.friend, this.pos);
 }
 
@@ -72,10 +97,11 @@ Iterable<FriendOrNot> friendsAndNot(Board b, Color who, PlayersAlive pa) sync* {
 }
 
 bool _tfriend(FriendOrNot elem) => elem.friend;
+
 bool _ffriend(FriendOrNot elem) => !elem.friend;
 
-Stream<FigType> weAreThreateningTypes(
-    Board b, Color who, PlayersAlive pa, EnPassantStore ep,
+Stream<FigType> weAreThreateningTypes(Board b, Color who, PlayersAlive pa,
+    EnPassantStore ep,
     {bool noWeAreThreatened: false}) async* {
   Iterable<FriendOrNot> myioni = friendsAndNot(b, who, pa);
   Iterable<Pos> my = myioni
@@ -87,13 +113,15 @@ Stream<FigType> weAreThreateningTypes(
   for (final Pos ich in oni)
     for (final Pos nasz in my)
       if (await isThereAThreat(b, ich, nasz, pa, ep)) {
-        yield b.gPos(ich).type;
+        yield b
+            .gPos(ich)
+            .type;
         break;
       }
 }
 
-Stream<FigType> weAreThreatened(
-    Board b, Color who, PlayersAlive pa, EnPassantStore ep) async* {
+Stream<FigType> weAreThreatened(Board b, Color who, PlayersAlive pa,
+    EnPassantStore ep) async* {
   yield* weAreThreateningTypes(b, who, pa, ep, noWeAreThreatened: true);
 }
 
@@ -108,7 +136,10 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
       os.alivecolors,
       os.fullmovenumber);
   for (final Pos oac
-      in AMFT.keys.where((Pos pos) => (s.board.gPos(pos)?.color == who)))
+  in AMFT.keys.where((Pos pos) =>
+  (s.board
+      .gPos(pos)
+      ?.color == who)))
     for (final Pos oacp in AMFT[oac])
       for (final Vector vec in s.board.gPos(oac).vecs(oac, oacp)) {
         Move m = new Move(
