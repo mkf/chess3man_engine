@@ -87,8 +87,8 @@ class Move {
     return null;
   }
 
-  static ColorCastling afterColorCastling(ColorCastling colorCastling,
-      FigType whatype, Color who, Pos from) {
+  static ColorCastling afterColorCastling(
+      ColorCastling colorCastling, FigType whatype, Color who, Pos from) {
     switch (whatype) {
       case FigType.king:
         return ColorCastling.off;
@@ -104,8 +104,8 @@ class Move {
     return colorCastling;
   }
 
-  static Castling afterCastling(Castling castling, FigType whatype, Color who,
-      Pos from, Pos to) {
+  static Castling afterCastling(
+      Castling castling, FigType whatype, Color who, Pos from, Pos to) {
     castling = castling.change(
         who, afterColorCastling(castling.give(who), whatype, who, from));
     if (to.rank == 0) {
@@ -136,11 +136,9 @@ class Move {
         }
         bool moatbridging = true;
         for (int i = curmoat.board * 8;
-        moatbridging && i < (curmoat.board + 1) * 8;
-        i++) {
-          if ((await fb)
-              .gPos(new Pos(0, i))
-              .color == curmoat)
+            moatbridging && i < (curmoat.board + 1) * 8;
+            i++) {
+          if ((await fb).gPos(new Pos(0, i)).color == curmoat)
             moatbridging = false;
         }
         if (moatbridging)
@@ -183,31 +181,33 @@ class Move {
         before.alivecolors,
         before.fullmovenumber + 1);
 
-    Future<PlayersAlive> evdDeath;
-    if (evaluateDeath) evdDeath = evalDeath(next);
-    //print((await b).toJson());
+    Future<State> nextWithEvalD;
     if (evaluateDeath)
-      // should it be there?
-      await amIinCheck(next, what.color).then((Pos heyitscheck) {
-        if (heyitscheck != null)
-          throw new WeInCheckException(this, heyitscheck, next);
-      });
+      nextWithEvalD = evaluateDeathThrowingCheck(next, what.color);
 
-    if (vec
-        .moats(from)
-        .isNotEmpty) {
+    if (vec.moats(from).isNotEmpty) {
       Function ctfvitat = (Color c) async {
         return await (isThereAThreat(b, await whereIsKing(b, c), to,
-            next.alivecolors, enPassantStore)
+                next.alivecolors, enPassantStore)
             .then(CheckInitiatedThruMoatException._chk(this, c, next)));
       };
-      Future<Future> ctfvprev = ctfvitat(what.color.previous);
-      Future<Future> ctfvnext = ctfvitat(what.color.next);
+      Future<dynamic> ctfvprev = ctfvitat(what.color.previous);
+      Future<dynamic> ctfvnext = ctfvitat(what.color.next);
       await ctfvprev;
       await ctfvnext;
     }
 
-    return evaluateDeath ? next.setAliveColors(await evdDeath) : next;
+    return evaluateDeath ? await nextWithEvalD : next;
+  }
+
+  Future<State> evaluateDeathThrowingCheck(State next, Color whatColor) async {
+    Future<PlayersAlive> evdDeath = evalDeath(next);
+    await amIinCheck(next, whatColor).then(//should it be there
+        (Pos heyitscheck) {
+      if (heyitscheck != null)
+        throw new WeInCheckException(this, heyitscheck, next);
+    });
+    return next.setAliveColors(await evdDeath);
   }
 }
 
@@ -221,7 +221,7 @@ class IllegalMoveException implements Exception {
 
   String toString() =>
       (msg ?? "IllegalMoveException") +
-          " from${m.from.toString()} vec:${m.vec.toString()}";
+      " from${m.from.toString()} vec:${m.vec.toString()}";
 }
 
 class NothingHereAlreadyException extends IllegalMoveException {
@@ -230,7 +230,7 @@ class NothingHereAlreadyException extends IllegalMoveException {
   NothingHereAlreadyException(Move m, Fig sq)
       : this.sq = sq,
         super(
-          m, "How do you move that which does not exist (${sq.toString()})?");
+            m, "How do you move that which does not exist (${sq.toString()})?");
 }
 
 class ThatColorDoesNotMoveNowException extends IllegalMoveException {
@@ -238,12 +238,12 @@ class ThatColorDoesNotMoveNowException extends IllegalMoveException {
 
   ThatColorDoesNotMoveNowException(Move m, this.c)
       : super(
-      m,
-      "That is not " +
-          m.what.color.toString() +
-          "'s move, but " +
-          m.before.movesnext.toString() +
-          "'s");
+            m,
+            "That is not " +
+                m.what.color.toString() +
+                "'s move, but " +
+                m.before.movesnext.toString() +
+                "'s");
 }
 
 class ImpossibleMoveException extends IllegalMoveException {
@@ -285,8 +285,8 @@ class CheckInitiatedThruMoatException extends IllegalMoveException {
       : this.to = to,
         super(m, "Our piece initiated a check thru moat to " + to.toString());
 
-  static _CheckToCheckInitiatedThruMoatException _chk(Move m, Color to,
-      State next) {
+  static _CheckToCheckInitiatedThruMoatException _chk(
+      Move m, Color to, State next) {
     return (bool b) {
       if (b) throw new CheckInitiatedThruMoatException(m, to, next);
     };
