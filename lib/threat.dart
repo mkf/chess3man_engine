@@ -45,35 +45,40 @@ Future<Pos> threatChecking(
   //  }
   //}
   // ignore: strong_mode_down_cast_composite
-  Worker worker = new Worker();
+  Worker worker = new Worker(poolSize: 1000000);
 
   return new Stream<Pos>
       // ignore: strong_mode_down_cast_composite, strong_mode_down_cast_composite
       .fromFutures(AMFT.keys
-          .map((Pos opos) => () {
-                Fig tjf = b.gPos(opos);
-                if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
-                  return isThereAThreat(b, where, opos, pa, ep, tjf)
-                      .then((bool b) => b ? opos : null);
-                }
-                Completer<Pos> _completer = new Completer<Pos>()
-                  ..complete(null);
-                Future<Pos> _future = _completer.future;
-                return _future;
-                // ignore: strong_mode_down_cast_composite
-              })
-          .map((_PosCallback pcb) => new _PosCallbackTask(pcb))
-          .map((_PosCallbackTask pcbt) => worker.handle(pcbt)
+          .map((Pos opos) =>
+              new _ThreatCheckingTask(b, where, pa, ep, opos, who))
+          .map((_ThreatCheckingTask pcbt) => worker.handle(pcbt)
               as Future<Pos>)).firstWhere((Pos opos) => opos != null);
   //return null;
 }
 
-typedef Future<Pos> _PosCallback();
+class _ThreatCheckingTask implements Task {
+  final Board b;
+  final Pos where;
+  final PlayersAlive pa;
+  final EnPassantStore ep;
+  final Pos opos;
+  final Color who;
+  _ThreatCheckingTask(
+      this.b, this.where, this.pa, this.ep, this.opos, this.who);
+  Future<Pos> execute() {
+    Fig tjf = b.gPos(opos);
+    if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
+      return isThereAThreat(b, where, opos, pa, ep, tjf)
+          .then((bool b) => b ? opos : null);
+    }
+    return _completedNullPosFuture();
+  }
+}
 
-class _PosCallbackTask implements Task {
-  final _PosCallback posCallback;
-  _PosCallbackTask(this.posCallback);
-  Future<Pos> execute() => posCallback();
+Future<Pos> _completedNullPosFuture() {
+  Completer<Pos> _completer = new Completer<Pos>()..complete(null);
+  return _completer.future;
 }
 
 Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) {
