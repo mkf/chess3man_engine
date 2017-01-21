@@ -12,6 +12,7 @@ import 'move.dart';
 import 'possib.dart';
 import 'prom.dart';
 import "state.dart";
+import "package:worker/worker.dart";
 
 Future<Pos> whereIsKing(Board b, Color who) async {
   for (final Pos opos in AMFT.keys) {
@@ -21,24 +22,22 @@ Future<Pos> whereIsKing(Board b, Color who) async {
   return null;
 }
 
-Future<bool> isThereAThreat(Board b, Pos where, Pos from, PlayersAlive pa,
-    EnPassantStore ep,
+Future<bool> isThereAThreat(
+    Board b, Pos where, Pos from, PlayersAlive pa, EnPassantStore ep,
     [Fig alrtjf = null]) {
   Fig tjf = alrtjf ?? b.gPos(from);
   Iterable<Vector> vecs = tjf.vecs(from, where);
   Iterable<Future<Impossibility>> futbools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
   Stream<Impossibility> strofbools =
-  new Stream<Impossibility>.fromFutures(futbools);
+      new Stream<Impossibility>.fromFutures(futbools);
   return (strofbools.firstWhere((Impossibility elem) => elem?.canI ?? true,
       defaultValue: () => false)) as Future<bool>; //TODO: avoid [as]
 }
 
-Future<Pos> threatChecking(Board b, Pos where, PlayersAlive pa,
-    EnPassantStore ep) {
-  Color who = b
-      .gPos(where)
-      .color;
+Future<Pos> threatChecking(
+    Board b, Pos where, PlayersAlive pa, EnPassantStore ep) {
+  Color who = b.gPos(where).color;
   //for (final Pos opos in AMFT.keys) {
   //  Fig tjf = b.gPos(opos);
   //  if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
@@ -46,34 +45,43 @@ Future<Pos> threatChecking(Board b, Pos where, PlayersAlive pa,
   //  }
   //}
   // ignore: strong_mode_down_cast_composite
+  Worker worker = new Worker();
+
   return new Stream<Pos>
-  // ignore: strong_mode_down_cast_composite, strong_mode_down_cast_composite
-      .fromFutures(
-      AMFT.keys.map((Pos opos) {
-        Fig tjf = b.gPos(opos);
-        if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
-          return isThereAThreat(b, where, opos, pa, ep, tjf)
-              .then((bool b) => b ? opos : null);
-        }
-        Completer<Pos> _completer = new Completer<Pos>()
-          ..complete(null);
-        Future<Pos> _future = _completer.future;
-        return _future;
-      })
-  )
-      .firstWhere((Pos opos) => opos != null);
+      // ignore: strong_mode_down_cast_composite, strong_mode_down_cast_composite
+      .fromFutures(AMFT.keys
+          .map((Pos opos) => () {
+                Fig tjf = b.gPos(opos);
+                if (tjf != null && tjf.color != who && pa.give(tjf.color)) {
+                  return isThereAThreat(b, where, opos, pa, ep, tjf)
+                      .then((bool b) => b ? opos : null);
+                }
+                Completer<Pos> _completer = new Completer<Pos>()
+                  ..complete(null);
+                Future<Pos> _future = _completer.future;
+                return _future;
+                // ignore: strong_mode_down_cast_composite
+              })
+          .map((_PosCallback pcb) => new _PosCallbackTask(pcb))
+          .map((_PosCallbackTask pcbt) => worker.handle(pcbt)
+              as Future<Pos>)).firstWhere((Pos opos) => opos != null);
   //return null;
+}
+
+typedef Future<Pos> _PosCallback();
+
+class _PosCallbackTask implements Task {
+  final _PosCallback posCallback;
+  _PosCallbackTask(this.posCallback);
+  Future<Pos> execute() => posCallback();
 }
 
 Future<Pos> checkChecking(Board b, Color who, PlayersAlive pa) {
   assert(pa.give(who));
-  return whereIsKing(b, who)
-      .then(
-          (Pos wking) {
-        assert(wking != null);
-        return wking;
-      })
-      .then((Pos wking) => threatChecking(b, wking, pa, EnPassantStore.empty));
+  return whereIsKing(b, who).then((Pos wking) {
+    assert(wking != null);
+    return wking;
+  }).then((Pos wking) => threatChecking(b, wking, pa, EnPassantStore.empty));
 }
 
 Future<Pos> amIinCheck(State s, Color who) =>
@@ -100,8 +108,8 @@ bool _tfriend(FriendOrNot elem) => elem.friend;
 
 bool _ffriend(FriendOrNot elem) => !elem.friend;
 
-Stream<FigType> weAreThreateningTypes(Board b, Color who, PlayersAlive pa,
-    EnPassantStore ep,
+Stream<FigType> weAreThreateningTypes(
+    Board b, Color who, PlayersAlive pa, EnPassantStore ep,
     {bool noWeAreThreatened: false}) async* {
   Iterable<FriendOrNot> myioni = friendsAndNot(b, who, pa);
   Iterable<Pos> my = myioni
@@ -113,15 +121,13 @@ Stream<FigType> weAreThreateningTypes(Board b, Color who, PlayersAlive pa,
   for (final Pos ich in oni)
     for (final Pos nasz in my)
       if (await isThereAThreat(b, ich, nasz, pa, ep)) {
-        yield b
-            .gPos(ich)
-            .type;
+        yield b.gPos(ich).type;
         break;
       }
 }
 
-Stream<FigType> weAreThreatened(Board b, Color who, PlayersAlive pa,
-    EnPassantStore ep) async* {
+Stream<FigType> weAreThreatened(
+    Board b, Color who, PlayersAlive pa, EnPassantStore ep) async* {
   yield* weAreThreateningTypes(b, who, pa, ep, noWeAreThreatened: true);
 }
 
@@ -136,10 +142,7 @@ Future<bool> canIMoveWOCheck(State os, Color who) async {
       os.alivecolors,
       os.fullmovenumber);
   for (final Pos oac
-  in AMFT.keys.where((Pos pos) =>
-  (s.board
-      .gPos(pos)
-      ?.color == who)))
+      in AMFT.keys.where((Pos pos) => (s.board.gPos(pos)?.color == who)))
     for (final Pos oacp in AMFT[oac])
       for (final Vector vec in s.board.gPos(oac).vecs(oac, oacp)) {
         Move m = new Move(

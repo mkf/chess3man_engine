@@ -1,6 +1,7 @@
 library chess3man.engine.pos;
 
 import "colors.dart";
+import "package:tuple/tuple.dart";
 
 class CanIDiagonal {
   final bool short;
@@ -30,6 +31,8 @@ class Pos {
   Pos next() => rank == 5 && file == 23
       ? null
       : new Pos(file == 23 ? rank + 1 : rank, file == 23 ? 0 : file + 1);
+  Pos addVec(Vector vec) => vec._addTo(this);
+  operator +(Vector vec) => this.addVec(vec);
   bool sameRank(Pos ano) => rank == ano.rank;
   bool sameFile(Pos ano) => file == ano.file;
   bool equal(Pos ano) => file == ano.file && rank == ano.rank;
@@ -67,8 +70,7 @@ class Pos {
   }
 
   RankVector rankVectorTo(Pos ano) => sameOrAdjacentFile(ano)
-      ? new RankVector(
-          sameFile(ano) ? ano.rank - rank : 5 - rank + 5 - ano.rank)
+      ? new RankVector(sameFile(ano) ? ano.rank - rank : 11 - (rank + ano.rank))
       : null;
   FileVector fileVectorTo(Pos ano, {bool long: false}) => sameRank(ano)
       ? new FileVector(wrappedFileVector(file, ano.file, long))
@@ -236,7 +238,8 @@ class Pos {
 abstract class Vector {
   int get rank;
   int get file;
-  Pos addTo(Pos from);
+  Pos addTo(Pos from) => from.addVec(this);
+  Pos _addTo(Pos from);
   bool toBool() => ((rank is int) && (file is int)) && (rank != 0 || file != 0);
   Iterable<Vector> units(int fromrank);
   Iterable<Pos> emptiesFrom(Pos from);
@@ -248,7 +251,8 @@ class ZeroVector implements Vector {
   int get rank => 0;
   int get file => 0;
   bool toBool() => false;
-  Pos addTo(Pos from) => from;
+  Pos addTo(Pos from) => from.addVec(this);
+  Pos _addTo(Pos from) => from;
   Iterable<Vector> units(_) sync* {}
   Iterable<Pos> emptiesFrom(_) sync* {}
   Iterable<Color> moats(_) sync* {}
@@ -270,11 +274,12 @@ abstract class CastlingVector implements JumpVector {
   static List<int> get empties => empties;
 
   bool toBool() => true;
+  Pos addTo(Pos from) => from.addVec(this);
   int get rank => 0;
 
   ///King's file modulo Color (mod 8)
   static const int kfm = 4;
-  Pos addTo(Pos pos) =>
+  Pos _addTo(Pos pos) =>
       pos.rank == 0 && pos.file % 8 == kfm ? new Pos(0, pos.file + file) : null;
   Iterable<Color> moats(_) sync* {}
   Iterable<Pos> emptiesFrom(Pos from) sync* {
@@ -309,8 +314,9 @@ class PawnLongJumpVector implements PawnVector {
   int get file => 0;
   bool get reqpc => false;
   bool toBool() => true;
+  Pos addTo(Pos from) => from.addVec(this);
   bool reqProm(_) => false;
-  Pos addTo(Pos from) => from.rank == 1 ? new Pos(3, from.file) : null;
+  Pos _addTo(Pos from) => from.rank == 1 ? new Pos(3, from.file) : null;
   Pos enpfield(Pos from) => from.rank == 1 ? new Pos(2, from.file) : null;
   static const PawnLongJumpVector c = const PawnLongJumpVector();
   Iterable<PawnLongJumpVector> units(_) sync* {
@@ -331,10 +337,11 @@ class PawnWalkVector extends RankVector implements PawnVector {
   int get file => 0;
   bool get reqpc => !this.direc;
   bool toBool() => true;
+  Pos addTo(Pos from) => from.addVec(this);
   bool reqProm(int rank) => rank + t == 0;
   bool thruCenter(int fromrank) => direc && fromrank == 5;
   Iterable<Color> moats(_) sync* {}
-  Pos addTo(Pos from) => thruCenter(from.rank)
+  Pos _addTo(Pos from) => thruCenter(from.rank)
       ? new Pos(5, (from.file + 12) % 24)
       : (from.rank == 0) != reqpc ? new Pos(from.rank + rank, from.file) : null;
   Iterable<Pos> emptiesFrom(_) sync* {}
@@ -354,7 +361,7 @@ class PawnCapVector extends DiagonalVector implements PawnVector {
           ? (from.file % 8 == 7) ? true : false
           : (from.file % 8 == 0) ? true : false;
 
-  Pos addTo(Pos pos) => creek(pos)
+  Pos _addTo(Pos pos) => creek(pos)
       ? null
       : thruCenter(pos.rank)
           ? new Pos(
@@ -389,7 +396,7 @@ class KnightVector implements JumpVector {
   bool get morefile => !morerank;
   int get rank => (inward ? 1 : -2) + (centeronecloser ? 1 : 0);
   int get file => (morefile ? 2 : 1) * (plusfile ? 1 : -1);
-  Pos addTo(Pos from) => (inward &&
+  Pos _addTo(Pos from) => (inward &&
           (centeronecloser && from.rank >= 4 || from.rank == 5))
       ? (centeronecloser
           ? new Pos(
@@ -429,6 +436,7 @@ class KnightVector implements JumpVector {
 
   bool toBool() =>
       inward != null && plusfile != null && centeronecloser != null;
+  Pos addTo(Pos from) => from.addVec(this);
   Iterable<KnightVector> units(_) sync* {
     yield this;
   }
@@ -443,6 +451,7 @@ abstract class ContinousVector implements Vector {
   const ContinousVector.unit() : this.abs = 1;
   @override
   bool toBool() => (abs is int) && abs != 0;
+  Pos addTo(Pos from) => from.addVec(this);
   Iterable<ContinousVector> units(int fromrank);
   Iterable<Pos> emptiesFrom(Pos from) => emptiesBetween(from);
   Iterable<Pos> emptiesBetween(Pos from) sync* {
@@ -495,7 +504,7 @@ class FileVector extends AxisVector {
     }
   }
 
-  Pos addTo(Pos pos) => new Pos(pos.rank, (pos.file + this.file) % 24);
+  Pos _addTo(Pos pos) => new Pos(pos.rank, (pos.file + this.file) % 24);
 }
 
 class RankVector extends AxisVector {
@@ -511,9 +520,11 @@ class RankVector extends AxisVector {
     }
   }
 
-  Pos addTo(Pos pos) {
+  String toString() => "{RV:$t}";
+
+  Pos _addTo(Pos pos) {
     bool tc = thruCenter(pos.rank);
-    return new Pos(tc ? 5 - (pos.rank + this.abs) : pos.rank + this.rank,
+    return new Pos(tc ? 11 - (pos.rank + this.abs) : pos.rank + this.rank,
         tc ? (pos.file + 12) % 24 : pos.file);
   }
 }
@@ -527,9 +538,18 @@ abstract class DiagonalVector extends ContinousVector {
   int get file => plusfile ? abs : -abs;
   @override
   bool toBool() => (abs is int) && abs > 0;
+  Pos addTo(Pos from) => from.addVec(this);
   bool badNotInward() => (!inward) && abs > 5;
   bool thruCenter(int fromrank) => inward && (fromrank + abs > 5);
-  bool thruCenterAndFurther(int fromrank) => inward && (fromrank + abs > 5);
+  bool thruCenterAndFurther(int fromrank) => inward && (fromrank + abs > 6);
+  Tuple2<bool, bool> whetherThruCenterAndWhetherFurther(int fromrank) {
+    if (!inward) return const Tuple2<bool, bool>(false, false);
+    int fromPlusAbs = fromrank + abs;
+    if (fromPlusAbs <= 5) return const Tuple2<bool, bool>(false, false);
+    if (fromPlusAbs <= 6) return const Tuple2<bool, bool>(true, false);
+    return const Tuple2<bool, bool>(true, true);
+  }
+
   DirectDiagonalVector _shortToCenterAlmost(int fromrank) =>
       new DirectDiagonalVector(
           thruCenter(fromrank) ? 5 - fromrank : abs, inward, plusfile);
@@ -566,13 +586,13 @@ class DirectDiagonalVector extends DiagonalVector {
       : this.fromNumsVec(vec.rank, vec.file);
   DirectDiagonalVector get reversed =>
       new DirectDiagonalVector(abs, !inward, !plusfile);
-  Iterable<DirectDiagonalVector> units(_) sync* {
+  Iterable<DirectDiagonalVector> units([_]) sync* {
     for (int i = abs; i > 0; i--) {
       yield new DirectDiagonalVector.unit(inward, plusfile);
     }
   }
 
-  Pos addTo(Pos pos) =>
+  Pos _addTo(Pos pos) =>
       new Pos(pos.rank + this.rank, (pos.file + this.file) % 24);
 }
 
@@ -590,32 +610,59 @@ class LongDiagonalVector extends DiagonalVector {
   SolelyThruCenterDiagonalVector solelyThruCenter() =>
       new SolelyThruCenterDiagonalVector(plusfile);
   Iterable<DiagonalVector> units(int fromrank) sync* {
-    yield* this.shortToCenterAlmost(fromrank).units(fromrank);
-    Iterable<DiagonalVector> ynnull;
-    if ((ynnull = this.solelyThruCenter()?.units(fromrank))
-        is Iterable<DiagonalVector>) yield* ynnull;
-    if ((ynnull = this.shortFromCenter(fromrank)?.units(fromrank))
-        is Iterable<DiagonalVector>) yield* ynnull;
+    yield* shortToCenterAlmost(fromrank).units();
+    //Iterable<DiagonalVector> ynnull;
+    //if ((ynnull = this.solelyThruCenter()?.units(fromrank))
+    //    is Iterable<DiagonalVector>) yield* ynnull;
+    //if ((ynnull = this.shortFromCenter(fromrank)?.units(fromrank))
+    //    is Iterable<DiagonalVector>) yield* ynnull;
+    Tuple2<bool, bool> aboutPassingCenter =
+        whetherThruCenterAndWhetherFurther(fromrank);
+    if (aboutPassingCenter.item1) yield* solelyThruCenter().units();
+    if (aboutPassingCenter.item2)
+      yield* shortFromCenter(fromrank).units();
   }
 
-  Pos addWithUnitsTo(Pos pos) => shortFromCenter(pos.rank).addTo(
-      solelyThruCenter().addTo(shortToCenterAlmost(pos.rank).addTo(pos)));
-  Pos addTo(Pos pos) => addWithUnitsTo(pos);
+  //Pos _addWithUnitsTo(Pos pos) => pos
+  //    .addVec(shortToCenterAlmost(pos.rank))
+  //    .addVec(solelyThruCenter())
+  //    .addVec(shortFromCenter(pos.rank));
+  Pos _addWithUnitsTo(Pos pos) {
+    Pos p = pos.addVec(shortFromCenter(pos.rank));
+    Tuple2<bool, bool> aboutPassingCenter =
+        whetherThruCenterAndWhetherFurther(pos.rank);
+    if (aboutPassingCenter.item1) p += solelyThruCenter();
+    if (aboutPassingCenter.item2) p += shortFromCenter(pos.rank);
+    return p;
+  }
+
+  Pos _addTo(Pos pos) => _addWithUnitsTo(pos);
 }
 
 class SolelyThruCenterDiagonalVector extends DiagonalVector {
   const SolelyThruCenterDiagonalVector(bool plusfile) : super.unit(plusfile);
   bool get inward => true;
+  String toString() => "<SolelyThruCenter Diagonal ${plusfile?"+":"-"}FILE>";
   SolelyThruCenterDiagonalVector get reversed =>
       new SolelyThruCenterDiagonalVector(!plusfile);
   @override
   Iterable<Color> moats(_) sync* {}
-  Iterable<SolelyThruCenterDiagonalVector> units(_) sync* {
+  Iterable<SolelyThruCenterDiagonalVector> units([_]) sync* {
     yield this;
   }
 
-  Pos addTo(Pos pos) =>
-      pos.rank == 5 ? new Pos(5, addFile(pos.file, plusfile)) : null;
+  Pos _addTo(Pos pos) {
+    if (pos.rank != 5) throw new VectorAdditionFailedException(pos, this);
+    return new Pos(5, addFile(pos.file, plusfile));
+  }
+
   static int addFile(int posfile, bool plusfile) =>
       (posfile + (plusfile ? -10 : 10)) % 24;
+}
+
+class VectorAdditionFailedException implements Exception {
+  final Vector vec;
+  final Pos pos;
+  VectorAdditionFailedException(this.pos, this.vec);
+  String toString() => "Cannot add: ${pos.toString()}+${vec.toString()}";
 }
