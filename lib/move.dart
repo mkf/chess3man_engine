@@ -77,30 +77,22 @@ class Move {
     if (impos != null) return new ImpossibleMoveException(this, impos);
     if (vec is PawnPromVector) {
       FigType toft = (vec as PawnPromVector).toft;
-      switch (toft) {
-        case FigType.zeroFigType:
-        case FigType.king:
-        case FigType.pawn:
-          return new IllegalPromotionException(this, toft);
-      }
+      if ((const <FigType>[FigType.pawn, FigType.king, FigType.zeroFigType])
+          .contains(toft)) return new IllegalPromotionException(this, toft);
     }
     return null;
   }
 
   static ColorCastling afterColorCastling(
       ColorCastling colorCastling, FigType whatype, Color who, Pos from) {
-    switch (whatype) {
-      case FigType.king:
-        return ColorCastling.off;
-      case FigType.rook:
-        if (from.rank == 0)
-          switch (from.file - (who.board * 8)) {
-            case 0:
-              return colorCastling.offqs();
-            case 7:
-              return colorCastling.offks();
-          }
-    }
+    if (whatype == FigType.king) return ColorCastling.off;
+    if (whatype == FigType.rook && from.rank == 0)
+      switch (from.file - (who.board * 8)) {
+        case 0:
+          return colorCastling.offqs();
+        case 7:
+          return colorCastling.offks();
+      }
     return colorCastling;
   }
 

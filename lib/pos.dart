@@ -32,7 +32,7 @@ class Pos {
       ? null
       : new Pos(file == 23 ? rank + 1 : rank, file == 23 ? 0 : file + 1);
   Pos addVec(Vector vec) => vec._addTo(this);
-  operator +(Vector vec) => this.addVec(vec);
+  Pos operator +(Vector vec) => this.addVec(vec);
   bool sameRank(Pos ano) => rank == ano.rank;
   bool sameFile(Pos ano) => file == ano.file;
   bool equal(Pos ano) => file == ano.file && rank == ano.rank;

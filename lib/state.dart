@@ -15,12 +15,12 @@ class PlayersAlive {
   static const PlayersAlive all = const PlayersAlive(true, true, true);
   static const PlayersAlive noone = const PlayersAlive(false, false, false);
   PlayersAlive change(Color c, bool what) {
-    switch (c) {
-      case Color.white:
+    switch (c.index) {
+      case 1:
         return new PlayersAlive(what, this.g, this.b);
-      case Color.gray:
+      case 2:
         return new PlayersAlive(this.w, what, this.b);
-      case Color.black:
+      case 3:
         return new PlayersAlive(this.w, this.b, what);
     }
     return null;
@@ -28,12 +28,12 @@ class PlayersAlive {
 
   PlayersAlive die(Color c) => change(c, false);
   bool give(Color c) {
-    switch (c) {
-      case Color.white:
+    switch (c.index) {
+      case 1:
         return w;
-      case Color.gray:
+      case 2:
         return g;
-      case Color.black:
+      case 3:
         return b;
     }
     throw new ArgumentError.value(c.index, "PlayersAlive Color c", "bad Color");

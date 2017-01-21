@@ -45,7 +45,7 @@ Future<Pos> threatChecking(
   //  }
   //}
   // ignore: strong_mode_down_cast_composite
-  Worker worker = new Worker(poolSize: 1000000);
+  Worker worker = new Worker(poolSize: 4);
 
   return new Stream<Pos>
       // ignore: strong_mode_down_cast_composite, strong_mode_down_cast_composite
@@ -57,7 +57,7 @@ Future<Pos> threatChecking(
   //return null;
 }
 
-class _ThreatCheckingTask implements Task {
+class _ThreatCheckingTask implements Task<Future<Pos>> {
   final Board b;
   final Pos where;
   final PlayersAlive pa;

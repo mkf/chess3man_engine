@@ -30,24 +30,24 @@ class Castling {
   final ColorCastling b;
   const Castling(this.w, this.g, this.b);
   Castling change(Color c, ColorCastling to) {
-    switch (c) {
-      case Color.white:
+    switch (c.index) {
+      case 1: //white
         return new Castling(to, g, b);
-      case Color.gray:
+      case 2: //gray
         return new Castling(w, to, b);
-      case Color.black:
+      case 3: //black
         return new Castling(w, g, to);
     }
     return null;
   }
 
   ColorCastling give(Color c) {
-    switch (c) {
-      case Color.white:
+    switch (c.index) {
+      case 1 /*white*/:
         return w;
-      case Color.gray:
+      case 2 /*gray */:
         return g;
-      case Color.black:
+      case 3 /*black */:
         return b;
     }
     return null;

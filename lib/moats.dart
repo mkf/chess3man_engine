@@ -17,12 +17,12 @@ class MoatsState {
   }
 
   bool isBridgedBetweenThisAndNext(Color col) {
-    switch (col) {
-      case Color.black:
+    switch (col.index) {
+      case 3:
         return bw;
-      case Color.white:
+      case 1:
         return wg;
-      case Color.gray:
+      case 2:
         return gb;
       default:
         return null;
@@ -30,12 +30,12 @@ class MoatsState {
   }
 
   MoatsState changeBetweenThisAndNext(Color col, bool towhat) {
-    switch (col) {
-      case Color.black:
+    switch (col.index) {
+      case 3:
         return new MoatsState(towhat, wg, gb);
-      case Color.white:
+      case 1:
         return new MoatsState(bw, towhat, gb);
-      case Color.gray:
+      case 2:
         return new MoatsState(bw, wg, towhat);
       default:
         return null;
@@ -49,12 +49,12 @@ class MoatsState {
       bridgeBetweenThisAndPrevious(col).bridgeBetweenThisAndNext(col);
 
   bool isBridgedBetweenThisAndPrevious(Color col) {
-    switch (col) {
-      case Color.black:
+    switch (col.index) {
+      case 3:
         return gb;
-      case Color.white:
+      case 1:
         return bw;
-      case Color.gray:
+      case 2:
         return wg;
       default:
         return null;
@@ -62,12 +62,12 @@ class MoatsState {
   }
 
   MoatsState changeBetweenThisAndPrevious(Color col, bool towhat) {
-    switch (col) {
-      case Color.black:
+    switch (col.index) {
+      case 3:
         return new MoatsState(bw, wg, towhat);
-      case Color.white:
+      case 1:
         return new MoatsState(towhat, wg, gb);
-      case Color.gray:
+      case 2:
         return new MoatsState(bw, towhat, gb);
       default:
         return null;

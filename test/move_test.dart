@@ -8,6 +8,7 @@ void main() {
   test("simple gen no panic", () async {
     State newState = new State.newGame();
     print(newState.b.toJson());
+    print(newState);
     Pos from = new Pos(1, 0);
     Pos to = new Pos(3, 0);
     Fig fsq = newState.b.gPos(from);
@@ -22,7 +23,7 @@ void main() {
     expect(vec, isNotNull);
     Move first = new Move(from, vec, newState);
     print("A");
-    Fig realsq = newState.b.b[1][0];
+    Fig realsq = newState.b.gPos_bycoor(1,0);
     print(realsq.toString());
     Fig oursq = newState.b.gPos(new Pos(1, 0));
     print(oursq.toString());

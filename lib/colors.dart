@@ -10,27 +10,30 @@ class Color {
   static const Color black = const Color(3);
   int toInt() => this.index;
   Color get next {
-    switch (this) {
-      case white:
+    switch (index) {
+      case 1:
         return gray;
-      case gray:
+      case 2:
         return black;
-      case black:
+      case 3:
         return white;
-      case zeroColor:
+      case 0:
         return white;
       default:
         throw new ArgumentError.value(index);
     }
   }
 
+  bool operator ==(dynamic other) => other is Color && other.index == index;
+  int get hashCode => index.hashCode;
+
   Color get previous {
-    switch (this) {
-      case white:
+    switch (this.index) {
+      case 1:
         return black;
-      case gray:
+      case 2:
         return white;
-      case black:
+      case 3:
         return gray;
       default:
         throw new ArgumentError.value(index);
@@ -39,12 +42,12 @@ class Color {
 
   int get board => this.index - 1;
   static const List<Color> colors = const <Color>[white, gray, black];
-  static const Map<Color, String> strings = const <Color, String>{
-    white: "White",
-    gray: "Gray",
-    black: "Black",
-    zeroColor: "ZeroColor"
-  };
+  static const List<String> strings = const <String>[
+    "ZeroColor",
+    "White",
+    "Gray",
+    "Black"
+  ];
   @override
-  String toString() => strings[this];
+  String toString() => strings[this.index];
 }
