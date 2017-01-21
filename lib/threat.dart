@@ -24,14 +24,14 @@ Future<Pos> whereIsKing(Board b, Color who) async {
 
 Future<bool> isThereAThreat(
     Board b, Pos where, Pos from, PlayersAlive pa, EnPassantStore ep,
-    [Fig alrtjf = null]) {
-  Fig tjf = alrtjf ?? b.gPos(from);
-  Iterable<Vector> vecs = tjf.vecs(from, where);
-  Iterable<Future<Impossibility>> futbools = vecs.map((Vector vec) =>
+    [Fig alreadyGotFig = null]) {
+  Fig fig = alreadyGotFig ?? b.gPos(from);
+  Iterable<Vector> vecs = fig.vecs(from, where);
+  Iterable<Future<Impossibility>> futureBools = vecs.map((Vector vec) =>
       possib(from, b, vec, MoatsState.noBridges, ep, Castling.off));
-  Stream<Impossibility> strofbools =
-      new Stream<Impossibility>.fromFutures(futbools);
-  return (strofbools.firstWhere((Impossibility elem) => elem?.canI ?? true,
+  Stream<Impossibility> streamOfBools =
+      new Stream<Impossibility>.fromFutures(futureBools);
+  return (streamOfBools.firstWhere((Impossibility elem) => elem?.canI ?? true,
       defaultValue: () => false)) as Future<bool>; //TODO: avoid [as]
 }
 
