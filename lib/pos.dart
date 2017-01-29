@@ -628,7 +628,7 @@ class LongDiagonalVector extends DiagonalVector {
   //    .addVec(solelyThruCenter())
   //    .addVec(shortFromCenter(pos.rank));
   Pos _addWithUnitsTo(Pos pos) {
-    Pos p = pos.addVec(shortFromCenter(pos.rank));
+    Pos p = pos.addVec(shortToCenterAlmost(pos.rank));
     Tuple2<bool, bool> aboutPassingCenter =
         whetherThruCenterAndWhetherFurther(pos.rank);
     if (aboutPassingCenter.item1) p += solelyThruCenter();
